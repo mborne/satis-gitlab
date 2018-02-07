@@ -6,7 +6,15 @@ It aims at to provide a way to automatically mirror the dependencies of a GITLAB
 
 ## Usage
 
-1) Generate SATIS configuration
+1) Create SATIS project
+
+```
+git clone https://github.com/mborne/satis-gitlab
+cd satis-gitlab
+composer install
+```
+
+2) Generate SATIS configuration
 
 ```
 # add --archive if you want to mirror tar archives
@@ -16,7 +24,7 @@ bin/satis-gitlab gitlab-to-config \
     https://gitlab.example.org GitlabToken
 ```
 
-2) Use SATIS as usual
+3) Use SATIS as usual
 
 ```
 bin/satis-gitlab build satis.json web
