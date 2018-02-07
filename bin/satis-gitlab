@@ -1,0 +1,13 @@
+#!/usr/bin/php
+<?php
+require_once dirname(__FILE__).'/../vendor/autoload.php';
+
+/*
+ * create extended satis application
+ */
+$application = new Composer\Satis\Console\Application();
+$application->add(new \MBO\SatisGitlab\Command\GitlabToConfigCommand());
+$application->run();
+
+
+

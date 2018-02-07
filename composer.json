@@ -1,0 +1,18 @@
+{
+    "name": "mbo/satis-gitlab",
+    "authors": [
+        {
+            "name": "Mickaël BORNE",
+            "email": "mborne@users.noreply.github.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"": "src/"}
+    },
+    "require": {
+        "m4tthumphrey/php-gitlab-api": "^9.6",
+        "php-http/guzzle6-adapter": "^1.1",
+        "symfony/console": "^3.4",
+        "composer/satis": "^1.0"
+    }
+}
