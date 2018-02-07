@@ -33,4 +33,8 @@ bin/satis-gitlab build satis.json web
 ## Requirements
 
 * GITLAB API v4
+
+## License
+
+satis-gitlab is licensed under the MIT License - see the [LICENSE][] file for details
  
