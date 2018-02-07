@@ -36,5 +36,5 @@ bin/satis-gitlab build satis.json web
 
 ## License
 
-satis-gitlab is licensed under the MIT License - see the [LICENSE][] file for details
+satis-gitlab is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
  
