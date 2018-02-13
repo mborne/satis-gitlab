@@ -114,6 +114,7 @@ class GitlabToConfigCommand extends Command {
         }
 
         if ($additionalConfigFile) {
+            $output->writeln("<info>Applying additional config from $additionalConfigFile</info>");
             $satis = $this->mergeWithAdditionalConfig($additionalConfigFile, $satis);
         }
 
