@@ -27,7 +27,7 @@ bin/satis-gitlab gitlab-to-config \
 
 ### 3) Configure authentication for composer (if `--no-token` option is enabled)
 
-By default, `gitlab-to-config` writes the OAuth token to `satis.json` configuration file. 
+By default, `gitlab-to-config` saves the gitlab token to `satis.json` configuration file. 
 
 You may disable this option using `--no-token` option and use the following composer command to configure `$COMPOSER_HOME/auth.json` file :
 
