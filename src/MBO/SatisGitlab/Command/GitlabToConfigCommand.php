@@ -2,6 +2,8 @@
 
 namespace MBO\SatisGitlab\Command;
 
+use Composer\Composer;
+use Composer\Config;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,6 +34,7 @@ class GitlabToConfigCommand extends Command {
             ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')
             ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage', 'http://satis.example.org/satis/')
             ->addOption('archive', null, InputOption::VALUE_NONE, 'enable archive mirroring')
+            ->addOption('additional-config', null, InputOption::VALUE_OPTIONAL, 'Config prototype, that will be added to the generated config')
         ;
     }
 
@@ -42,6 +45,7 @@ class GitlabToConfigCommand extends Command {
         $gitlabUrl = $input->getArgument('gitlab-url');
         $gitlabAuthToken = $input->getArgument('gitlab-token');
         $outputFile = $input->getOption('output');
+        $additionalConfigFile = $input->getOption('additional-config');
         $homepage = $input->getOption('homepage');
         
         /*
@@ -64,7 +68,7 @@ class GitlabToConfigCommand extends Command {
                 'directory' => 'dist',
                 'format' => 'tar',
                 'skip-dev' => true
-            );            
+            );
         }
 
         $client = $this->createGitlabClient($gitlabUrl, $gitlabAuthToken);
@@ -107,6 +111,11 @@ class GitlabToConfigCommand extends Command {
                     );
                 }
             }
+        }
+
+        if ($additionalConfigFile) {
+            $output->writeln("<info>Applying additional config from $additionalConfigFile</info>");
+            $satis = $this->mergeWithAdditionalConfig($additionalConfigFile, $satis);
         }
 
         $output->writeln("<info>generate satis configuration file : $outputFile</info>");
@@ -161,4 +170,18 @@ class GitlabToConfigCommand extends Command {
         return $client;
     }
 
+    /**
+     * Recursively merges $satis config with config from $additionalConfigFile
+     *
+     * @param string $additionalConfigFile
+     * @param array $satis
+     * @return array
+     */
+    protected function mergeWithAdditionalConfig($additionalConfigFile, $satis)
+    {
+        $fileContent = file_get_contents($additionalConfigFile);
+        $config = json_decode($fileContent, true);
+
+        return array_merge_recursive($satis, $config);
+    }
 }

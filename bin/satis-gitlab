@@ -7,7 +7,5 @@ require_once dirname(__FILE__).'/../vendor/autoload.php';
  */
 $application = new Composer\Satis\Console\Application();
 $application->add(new \MBO\SatisGitlab\Command\GitlabToConfigCommand());
+$application->add(new \MBO\SatisGitlab\Command\AuthConfigCommand());
 $application->run();
-
-
-
