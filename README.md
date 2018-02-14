@@ -6,7 +6,8 @@ It aims at to provide a way to automatically mirror the dependencies of a GITLAB
 
 ## Usage
 
-1) Create SATIS project
+
+### 1) Create SATIS project
 
 ```
 git clone https://github.com/mborne/satis-gitlab
@@ -14,7 +15,7 @@ cd satis-gitlab
 composer install
 ```
 
-2) Generate SATIS configuration
+### 2) Generate SATIS configuration
 
 ```
 # add --archive if you want to mirror tar archives
@@ -24,7 +25,7 @@ bin/satis-gitlab gitlab-to-config \
     https://gitlab.example.org GitlabToken
 ```
 
-3) Configure authentication for composer
+### 3) Configure authentication for composer (if `--no-token` option is enabled)
 
 By default, `gitlab-to-config` writes the OAuth token to `satis.json` configuration file. 
 
@@ -34,7 +35,7 @@ You may disable this option using `--no-token` option and use the following comp
 
 **MAKE SURE YOU DO NOT EXPOSE satis.json IF IT CONTAINS GITLAB-TOKEN**
 
-4) Use SATIS as usual
+### 4) Use SATIS as usual
 
 ```
 bin/satis-gitlab build satis.json web
