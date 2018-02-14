@@ -24,11 +24,42 @@ bin/satis-gitlab gitlab-to-config \
     https://gitlab.example.org GitlabToken
 ```
 
-3) Use SATIS as usual
+3) Configure authentication for composer
+
+By default, `gitlab-to-config` writes the OAuth token to `satis.json` configuration file. 
+
+You may disable this option using `--no-token` option and use the following composer command to configure `$COMPOSER_HOME/auth.json` file :
+
+`composer config -g gitlab-token.satis.example.org GitlabToken`
+
+**MAKE SURE YOU DO NOT EXPOSE satis.json IF IT CONTAINS GITLAB-TOKEN**
+
+4) Use SATIS as usual
 
 ```
 bin/satis-gitlab build satis.json web
 ```
+
+
+## Deep customization
+
+Some command line options provide a basic customization options. You may also use `--template my-satis-template.json` to replace the following template :
+
+```
+{
+    "name": "SATIS repository",
+    "homepage": "http://localhost/satis/",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packagist.org"
+        }
+    ],
+    "require": [],
+    "require-dependencies": true
+}
+```
+
 
 ## Requirements
 

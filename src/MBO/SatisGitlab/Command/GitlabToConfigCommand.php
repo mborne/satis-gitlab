@@ -21,6 +21,8 @@ class GitlabToConfigCommand extends Command {
     const MAX_PAGES = 10000;
 
     protected function configure() {
+        $templatePath = realpath( dirname(__FILE__).'/../Resources/default-template.json' );
+        
         $this
             // the name of the command (the part after "bin/console")
             ->setName('gitlab-to-config')
@@ -31,10 +33,17 @@ class GitlabToConfigCommand extends Command {
             ->addArgument('gitlab-url', InputArgument::REQUIRED)
             ->addArgument('gitlab-token')
             
-            ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')
-            ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage', 'http://satis.example.org/satis/')
+            // deep customization : template file extended with default configuration
+            ->addOption('template', null, InputOption::VALUE_REQUIRED, 'template satis.json extended with gitlab repositories', $templatePath)
+
+            // simple customization
+            ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage', 'http://localhost/satis/')
             ->addOption('archive', null, InputOption::VALUE_NONE, 'enable archive mirroring')
-            ->addOption('additional-config', null, InputOption::VALUE_OPTIONAL, 'Config prototype, that will be added to the generated config')
+
+            ->addOption('no-token', null, InputOption::VALUE_NONE, 'disable token writing in output configuration')
+
+            // output configuration
+            ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')     
         ;
     }
 
@@ -45,25 +54,21 @@ class GitlabToConfigCommand extends Command {
         $gitlabUrl = $input->getArgument('gitlab-url');
         $gitlabAuthToken = $input->getArgument('gitlab-token');
         $outputFile = $input->getOption('output');
-        $additionalConfigFile = $input->getOption('additional-config');
-        $homepage = $input->getOption('homepage');
+
+        /*
+         * load template satis.json file
+         */
+        $templatePath = $input->getOption('template');
+        $output->writeln(sprintf("<info>Loading template %s...</info>", $templatePath));
+        $satis = json_decode( file_get_contents($templatePath), true) ;
         
         /*
-         * prepare satis config
+         * customize according to command line options
          */
-        $satis = array();
-        $satis['name'] = "SATIS repository";
-        $satis['homepage'] = $homepage;
-        $satis['repositories'] = array();
-        /* packagist */
-        $satis['repositories'][] = array(
-            'type' => 'composer',
-            'url' => 'https://packagist.org'
-        );
-        $satis['require'] = array();
-        $satis['require-dependencies'] = true;
-        /* mirroring */
+        $satis['homepage'] = $input->getOption('homepage');
+        // mirroring
         if ( $input->getOption('archive') ){
+            $satis['require-dependencies'] = true;
             $satis['archive'] = array(
                 'directory' => 'dist',
                 'format' => 'tar',
@@ -71,11 +76,31 @@ class GitlabToConfigCommand extends Command {
             );
         }
 
-        $client = $this->createGitlabClient($gitlabUrl, $gitlabAuthToken);
+        /*
+         * Register gitlab domain to enable composer gitlab-* authentications
+         */
+        $gitlabDomain = parse_url($gitlabUrl, PHP_URL_HOST);
+        if ( ! isset($satis['config']) ){
+            $satis['config'] = array();
+        }
+        if ( ! isset($satis['config']['gitlab-domains']) ){
+            $satis['config']['gitlab-domains'] = array($gitlabDomain);
+        }else{
+            $satis['config']['gitlab-domains'][] = $gitlabDomain ;
+        }
+
+        if ( ! $input->getOption('no-token') ){
+            if ( ! isset($satis['config']['gitlab-token']) ){
+                $satis['config']['gitlab-token'] = array();
+            }
+            $satis['config']['gitlab-token'][$gitlabDomain] = $gitlabAuthToken;
+        }
 
         /*
-         * SCAN projects
+         * SCAN gitlab projects to find composer.json file in default branch
          */
+        $output->writeln(sprintf("<info>Listing gitlab repositories from %s...</info>", $gitlabUrl));
+        $client = $this->createGitlabClient($gitlabUrl, $gitlabAuthToken);
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
             $projects = $client->projects()->all(array(
                 'page' => $page, 
@@ -98,7 +123,15 @@ class GitlabToConfigCommand extends Command {
 
                     $satis['repositories'][] = array(
                         'type' => 'vcs',
-                        'url' => $projectUrl
+                        'url' => $projectUrl,
+                        //TODO improve SSL management
+                        'options' => [
+                            "ssl" => [
+                                "verify_peer" => false,
+                                "verify_peer_name" => false,
+                                "allow_self_signed" => true
+                            ]
+                        ]
                     );
                     $satis['require'][$projectName] = '*';
                     $this->displayProjectInfo($output,$project,
@@ -111,11 +144,6 @@ class GitlabToConfigCommand extends Command {
                     );
                 }
             }
-        }
-
-        if ($additionalConfigFile) {
-            $output->writeln("<info>Applying additional config from $additionalConfigFile</info>");
-            $satis = $this->mergeWithAdditionalConfig($additionalConfigFile, $satis);
         }
 
         $output->writeln("<info>generate satis configuration file : $outputFile</info>");
@@ -170,18 +198,4 @@ class GitlabToConfigCommand extends Command {
         return $client;
     }
 
-    /**
-     * Recursively merges $satis config with config from $additionalConfigFile
-     *
-     * @param string $additionalConfigFile
-     * @param array $satis
-     * @return array
-     */
-    protected function mergeWithAdditionalConfig($additionalConfigFile, $satis)
-    {
-        $fileContent = file_get_contents($additionalConfigFile);
-        $config = json_decode($fileContent, true);
-
-        return array_merge_recursive($satis, $config);
-    }
 }
