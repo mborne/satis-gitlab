@@ -46,7 +46,7 @@ bin/satis-gitlab build satis.json web
 
 Some command line options provide a basic customization options. You may also use `--template my-satis-template.json` to replace the default template :
 
-[default-template.json](src/MBO/SatisGitlab/Resources/default-templates.json)
+[default-template.json](src/MBO/SatisGitlab/Resources/default-template.json)
 
 
 ## Requirements
