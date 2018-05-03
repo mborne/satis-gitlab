@@ -44,22 +44,9 @@ bin/satis-gitlab build satis.json web
 
 ## Deep customization
 
-Some command line options provide a basic customization options. You may also use `--template my-satis-template.json` to replace the following template :
+Some command line options provide a basic customization options. You may also use `--template my-satis-template.json` to replace the default template :
 
-```
-{
-    "name": "SATIS repository",
-    "homepage": "http://localhost/satis/",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://packagist.org"
-        }
-    ],
-    "require": [],
-    "require-dependencies": true
-}
-```
+[default-template.json](src/MBO/SatisGitlab/Resources/default-templates.json)
 
 
 ## Requirements

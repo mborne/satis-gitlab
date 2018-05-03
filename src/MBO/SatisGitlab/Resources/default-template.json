@@ -8,5 +8,6 @@
         }
     ],
     "require": [],
-    "require-dependencies": true
+    "require-dependencies": true,
+    "require-dev-dependencies": true
 }
