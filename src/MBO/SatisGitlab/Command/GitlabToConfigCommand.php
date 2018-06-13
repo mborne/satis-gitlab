@@ -89,7 +89,7 @@ class GitlabToConfigCommand extends Command {
             $satis['config']['gitlab-domains'][] = $gitlabDomain ;
         }
 
-        if ( ! $input->getOption('no-token') ){
+        if ( ! $input->getOption('no-token') && ! empty($gitlabAuthToken) ){
             if ( ! isset($satis['config']['gitlab-token']) ){
                 $satis['config']['gitlab-token'] = array();
             }
@@ -188,12 +188,12 @@ class GitlabToConfigCommand extends Command {
         $client = new \Gitlab\Client($httpClientBuilder);
         $client->setUrl($gitlabUrl);
 
-        /*
-         * gitlab authentification
-         */
-        $client
-            ->authenticate($gitlabAuthToken, \Gitlab\Client::AUTH_URL_TOKEN)
-        ;
+        // Authenticate to gitlab, if a token is provided
+        if ( ! empty($gitlabAuthToken) ) {
+            $client
+                ->authenticate($gitlabAuthToken, \Gitlab\Client::AUTH_URL_TOKEN)
+            ;
+        }
         
         return $client;
     }
