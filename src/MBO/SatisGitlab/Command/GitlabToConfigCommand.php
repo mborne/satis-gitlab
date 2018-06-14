@@ -19,6 +19,8 @@ class GitlabToConfigCommand extends Command {
 
     const PER_PAGE = 50;
     const MAX_PAGES = 10000;
+    const HOMEPAGE_DEFAULT = '_default_';
+    const HOMEPAGE_DEFAULT_VALUE = 'http://localhost/satis/';
 
     protected function configure() {
         $templatePath = realpath( dirname(__FILE__).'/../Resources/default-template.json' );
@@ -65,7 +67,13 @@ class GitlabToConfigCommand extends Command {
         /*
          * customize according to command line options
          */
-        $satis['homepage'] = $input->getOption('homepage');
+        $homepage = $input->getOption('homepage');
+        $homepage_default = $homepage === static::HOMEPAGE_DEFAULT;
+        $homepage_empty = !isset($satis['homepage']);
+        if ( ! $homepage_default || $homepage_empty ) {
+          $satis['homepage'] = ($homepage_default) ? static::HOMEPAGE_DEFAULT_VALUE : $homepage;
+        }
+
         // mirroring
         if ( $input->getOption('archive') ){
             $satis['require-dependencies'] = true;
