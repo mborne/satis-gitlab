@@ -24,7 +24,7 @@ class GitlabToConfigCommand extends Command {
 
     protected function configure() {
         $templatePath = realpath( dirname(__FILE__).'/../Resources/default-template.json' );
-        
+
         $this
             // the name of the command (the part after "bin/console")
             ->setName('gitlab-to-config')
@@ -34,7 +34,7 @@ class GitlabToConfigCommand extends Command {
             ->setHelp('look for composer.json in default gitlab branche, extract project name and register them in SATIS configuration')
             ->addArgument('gitlab-url', InputArgument::REQUIRED)
             ->addArgument('gitlab-token')
-            
+
             // deep customization : template file extended with default configuration
             ->addOption('template', null, InputOption::VALUE_REQUIRED, 'template satis.json extended with gitlab repositories', $templatePath)
 
@@ -45,7 +45,7 @@ class GitlabToConfigCommand extends Command {
             ->addOption('no-token', null, InputOption::VALUE_NONE, 'disable token writing in output configuration')
 
             // output configuration
-            ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')     
+            ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')
         ;
     }
 
@@ -63,7 +63,7 @@ class GitlabToConfigCommand extends Command {
         $templatePath = $input->getOption('template');
         $output->writeln(sprintf("<info>Loading template %s...</info>", $templatePath));
         $satis = json_decode( file_get_contents($templatePath), true) ;
-        
+
         /*
          * customize according to command line options
          */
@@ -111,7 +111,7 @@ class GitlabToConfigCommand extends Command {
         $client = $this->createGitlabClient($gitlabUrl, $gitlabAuthToken);
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
             $projects = $client->projects()->all(array(
-                'page' => $page, 
+                'page' => $page,
                 'per_page' => self::PER_PAGE
             ));
             if ( empty($projects) ){
@@ -163,8 +163,8 @@ class GitlabToConfigCommand extends Command {
      * display project information
      */
     protected function displayProjectInfo(
-        OutputInterface $output, 
-        array $project, 
+        OutputInterface $output,
+        array $project,
         $message,
         $verbosity = OutputInterface::VERBOSITY_NORMAL
     ){
@@ -175,8 +175,8 @@ class GitlabToConfigCommand extends Command {
             $message
         ),$verbosity);
     }
-    
-    
+
+
     /**
      * Create gitlab client
      * @param string $gitlabUrl
@@ -202,7 +202,7 @@ class GitlabToConfigCommand extends Command {
                 ->authenticate($gitlabAuthToken, \Gitlab\Client::AUTH_URL_TOKEN)
             ;
         }
-        
+
         return $client;
     }
 
