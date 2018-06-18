@@ -88,6 +88,19 @@ Some command line options provide a basic customization options. You may also us
 
 [default-template.json](src/MBO/SatisGitlab/Resources/default-template.json)
 
+### Additional Commands
+
+This project also provides another command for fetching the dependencies used by projects found in the gitlab instance.
+
+To use this command, run:
+
+```bash
+bin/satis-gitlab gitlab-dependencies-to-config \
+    --output satis.json \
+    https://gitlab.example.org [GitlabToken]
+```
+
+You can chain this command, and append to the output of the `gitlab-to-config` command, buy supplying `--template` with the output file.
 
 ## Requirements
 
