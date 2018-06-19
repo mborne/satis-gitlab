@@ -100,7 +100,7 @@ class GitlabCommandBase extends Command {
         }
         if ( ! isset($satis['config']['gitlab-domains']) ){
             $satis['config']['gitlab-domains'] = array($gitlabDomain);
-        } else {
+        } else if ( ! in_array($gitlabDomain, $satis['config']['gitlab-domains']) ) {
             $satis['config']['gitlab-domains'][] = $gitlabDomain ;
         }
 
