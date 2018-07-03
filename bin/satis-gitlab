@@ -27,4 +27,5 @@ if ((!$loader = includeIfExists(__DIR__.'/../vendor/autoload.php')) && (!$loader
  */
 $application = new Composer\Satis\Console\Application();
 $application->add(new \MBO\SatisGitlab\Command\GitlabToConfigCommand());
+$application->add(new \MBO\SatisGitlab\Command\GitlabDependenciesToConfigCommand());
 $application->run();
