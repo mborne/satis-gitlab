@@ -41,11 +41,12 @@ class GitlabToConfigCommand extends Command {
             // simple customization
             ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage', static::HOMEPAGE_DEFAULT)
             ->addOption('archive', null, InputOption::VALUE_NONE, 'enable archive mirroring')
-
             ->addOption('no-token', null, InputOption::VALUE_NONE, 'disable token writing in output configuration')
+            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
 
             // output configuration
             ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')
+
         ;
     }
 
@@ -56,6 +57,7 @@ class GitlabToConfigCommand extends Command {
         $gitlabUrl = $input->getArgument('gitlab-url');
         $gitlabAuthToken = $input->getArgument('gitlab-token');
         $outputFile = $input->getOption('output');
+        $projectFilter = $input->getOption('projectFilter');
 
         /*
          * load template satis.json file
@@ -109,11 +111,21 @@ class GitlabToConfigCommand extends Command {
          */
         $output->writeln(sprintf("<info>Listing gitlab repositories from %s...</info>", $gitlabUrl));
         $client = $this->createGitlabClient($gitlabUrl, $gitlabAuthToken);
+
+        $projectCriteria = array(
+            'page' => 1,
+            'per_page' => self::PER_PAGE
+        );
+
+        if ($projectFilter !== null) {
+            $projectCriteria['search'] = $projectFilter;
+            $output->writeln(sprintf("<info>Applying project filter %s...</info>", $projectFilter));
+        }
+
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $projects = $client->projects()->all(array(
-                'page' => $page,
-                'per_page' => self::PER_PAGE
-            ));
+            $projectCriteria['page'] = $page;
+
+            $projects = $client->projects()->all($projectCriteria);
             if ( empty($projects) ){
                 break;
             }
