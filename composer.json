@@ -9,6 +9,9 @@
     "autoload": {
         "psr-4": {"": "src/"}
     },
+    "autoload-dev": {
+        "psr-4": {"MBO\\SatisGitlab\\": "test/functional"}
+    },
     "bin": [
         "bin/satis-gitlab"
     ],
@@ -17,5 +20,8 @@
         "php-http/guzzle6-adapter": "^1.1",
         "symfony/console": "^3.4",
         "composer/satis": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5"
     }
 }
