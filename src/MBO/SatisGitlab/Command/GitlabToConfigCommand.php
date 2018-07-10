@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use MBO\SatisGitlab\Satis\ConfigBuilder;
 
 /**
  * Generate SATIS configuration scanning gitlab repositories
@@ -19,8 +20,6 @@ class GitlabToConfigCommand extends Command {
 
     const PER_PAGE = 50;
     const MAX_PAGES = 10000;
-    const HOMEPAGE_DEFAULT = '_default_';
-    const HOMEPAGE_DEFAULT_VALUE = 'http://localhost/satis/';
 
     protected function configure() {
         $templatePath = realpath( dirname(__FILE__).'/../Resources/default-template.json' );
@@ -32,21 +31,29 @@ class GitlabToConfigCommand extends Command {
             // the short description shown while running "php bin/console list"
             ->setDescription('generate satis configuration scanning gitlab repositories')
             ->setHelp('look for composer.json in default gitlab branche, extract project name and register them in SATIS configuration')
+            
+            /* 
+             * project listing options 
+             */
             ->addArgument('gitlab-url', InputArgument::REQUIRED)
             ->addArgument('gitlab-token')
+            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
 
+            /* 
+             * satis config generation options 
+             */
             // deep customization : template file extended with default configuration
             ->addOption('template', null, InputOption::VALUE_REQUIRED, 'template satis.json extended with gitlab repositories', $templatePath)
 
             // simple customization
-            ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage', static::HOMEPAGE_DEFAULT)
+            ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage')
             ->addOption('archive', null, InputOption::VALUE_NONE, 'enable archive mirroring')
             ->addOption('no-token', null, InputOption::VALUE_NONE, 'disable token writing in output configuration')
-            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
 
-            // output configuration
+            /* 
+             * output options
+             */
             ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')
-
         ;
     }
 
@@ -60,31 +67,27 @@ class GitlabToConfigCommand extends Command {
         $projectFilter = $input->getOption('projectFilter');
 
         /*
-         * load template satis.json file
+         * Create configuration builder
          */
         $templatePath = $input->getOption('template');
         $output->writeln(sprintf("<info>Loading template %s...</info>", $templatePath));
-        $satis = json_decode( file_get_contents($templatePath), true) ;
+        $configBuilder = new ConfigBuilder($templatePath);
 
         /*
          * customize according to command line options
          */
         $homepage = $input->getOption('homepage');
-        $homepage_default = $homepage === static::HOMEPAGE_DEFAULT;
-        $homepage_empty = !isset($satis['homepage']);
-        if ( ! $homepage_default || $homepage_empty ) {
-          $satis['homepage'] = ($homepage_default) ? static::HOMEPAGE_DEFAULT_VALUE : $homepage;
+        if ( ! empty($homepage) ){
+            $configBuilder->setHomepage($homepage);
         }
 
         // mirroring
         if ( $input->getOption('archive') ){
-            $satis['require-dependencies'] = true;
-            $satis['archive'] = array(
-                'directory' => 'dist',
-                'format' => 'tar',
-                'skip-dev' => true
-            );
+            $configBuilder->enableArchive();
         }
+
+        // TODO finalize ConfigBuilder
+        $satis = $configBuilder->getConfig();
 
         /*
          * Register gitlab domain to enable composer gitlab-* authentications
