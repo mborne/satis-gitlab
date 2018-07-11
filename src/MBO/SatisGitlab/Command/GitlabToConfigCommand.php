@@ -63,6 +63,12 @@ class GitlabToConfigCommand extends Command {
          */
         $gitlabUrl = $input->getArgument('gitlab-url');
         $gitlabAuthToken = $input->getArgument('gitlab-token');
+        /*
+         * TODO add option 
+         * see https://github.com/mborne/satis-gitlab/issues/2
+         */
+        $gitlabUnsafeSsl = true;
+
         $outputFile = $input->getOption('output');
         $projectFilter = $input->getOption('projectFilter');
 
@@ -86,34 +92,29 @@ class GitlabToConfigCommand extends Command {
             $configBuilder->enableArchive();
         }
 
-        // TODO finalize ConfigBuilder
-        $satis = $configBuilder->getConfig();
-
         /*
          * Register gitlab domain to enable composer gitlab-* authentications
          */
         $gitlabDomain = parse_url($gitlabUrl, PHP_URL_HOST);
-        if ( ! isset($satis['config']) ){
-            $satis['config'] = array();
-        }
-        if ( ! isset($satis['config']['gitlab-domains']) ){
-            $satis['config']['gitlab-domains'] = array($gitlabDomain);
-        }else{
-            $satis['config']['gitlab-domains'][] = $gitlabDomain ;
-        }
+        $configBuilder->addGitlabDomain($gitlabDomain);
 
         if ( ! $input->getOption('no-token') && ! empty($gitlabAuthToken) ){
-            if ( ! isset($satis['config']['gitlab-token']) ){
-                $satis['config']['gitlab-token'] = array();
-            }
-            $satis['config']['gitlab-token'][$gitlabDomain] = $gitlabAuthToken;
+            $configBuilder->addGitlabToken(
+                $gitlabDomain, 
+                $gitlabAuthToken,
+                $gitlabUnsafeSsl
+            );
         }
 
         /*
          * SCAN gitlab projects to find composer.json file in default branch
          */
         $output->writeln(sprintf("<info>Listing gitlab repositories from %s...</info>", $gitlabUrl));
-        $client = $this->createGitlabClient($gitlabUrl, $gitlabAuthToken);
+        $client = $this->createGitlabClient(
+            $gitlabUrl,
+            $gitlabAuthToken,
+            $gitlabUnsafeSsl
+        );
 
         $projectCriteria = array(
             'page' => 1,
@@ -144,21 +145,13 @@ class GitlabToConfigCommand extends Command {
                         continue;
                     }
 
-                    $satis['repositories'][] = array(
-                        'type' => 'vcs',
-                        'url' => $projectUrl,
-                        //TODO improve SSL management
-                        'options' => [
-                            "ssl" => [
-                                "verify_peer" => false,
-                                "verify_peer_name" => false,
-                                "allow_self_signed" => true
-                            ]
-                        ]
-                    );
-                    $satis['require'][$projectName] = '*';
                     $this->displayProjectInfo($output,$project,
                         "<info>$projectName:*</info>"
+                    );
+                    $configBuilder->addRepository(
+                        $projectName, 
+                        $projectUrl,
+                        $gitlabUnsafeSsl
                     );
                 } catch (\Exception $e) {
                     $this->displayProjectInfo($output,$project,
@@ -169,6 +162,8 @@ class GitlabToConfigCommand extends Command {
             }
         }
 
+        /* get resulting configuration */
+        $satis = $configBuilder->getConfig();
         $output->writeln("<info>generate satis configuration file : $outputFile</info>");
         $result = json_encode($satis, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         file_put_contents($outputFile, $result);
@@ -194,20 +189,33 @@ class GitlabToConfigCommand extends Command {
 
     /**
      * Create gitlab client
+     * 
      * @param string $gitlabUrl
      * @param string $gitlabAuthToken
+     * @param boolean $gitlabUnsafeSsl
+     * 
      * @return \Gitlab\Client
      */
-    protected function createGitlabClient($gitlabUrl, $gitlabAuthToken) {
+    protected function createGitlabClient(
+        $gitlabUrl, 
+        $gitlabAuthToken,
+        $gitlabUnsafeSsl
+    ) {
+        $guzzleOptions = array();
+        if ( $gitlabUnsafeSsl ){
+            $guzzleOptions['verify'] = false;
+        }
+        
         /*
-         * create client with ssl verify disabled
+         * Create HTTP client according to $gitlabUnsafeSsl
          */
-        $guzzleClient = new \GuzzleHttp\Client(array(
-            'verify' => false
-        ));
+        $guzzleClient = new \GuzzleHttp\Client($guzzleOptions);
         $httpClient = new \Http\Adapter\Guzzle6\Client($guzzleClient);
         $httpClientBuilder = new \Gitlab\HttpClient\Builder($httpClient);
 
+        /*
+         * Create gitlab client
+         */
         $client = new \Gitlab\Client($httpClientBuilder);
         $client->setUrl($gitlabUrl);
 

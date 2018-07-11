@@ -42,6 +42,62 @@ class ConfigBuilderTest extends TestCase {
         $this->assertTrue($result['archive']['skip-dev']);
     }
 
+    public function testAddGitlabDomain(){
+        $configBuilder = new ConfigBuilder();
+        $configBuilder->addGitlabDomain('gitlab.com');
+        $configBuilder->addGitlabDomain('my-gitlab.com');        
+
+        $result = $configBuilder->getConfig();
+
+        $this->assertArrayHasKey('config',$result);
+        
+        $this->assertEquals(
+            '{"gitlab-domains":["gitlab.com","my-gitlab.com"]}',
+            json_encode($result['config'])
+        );
+    }
+
+    public function testAddGitlabToken(){
+        $configBuilder = new ConfigBuilder();
+        $configBuilder->addGitlabToken('gitlab.com','test');
+
+        $result = $configBuilder->getConfig();
+
+        $this->assertArrayHasKey('config',$result);
+        
+        $this->assertEquals(
+            '{"gitlab-token":{"gitlab.com":"test"}}',
+            json_encode($result['config'])
+        );
+    }
+
+    public function testAddRepository(){
+        $configBuilder = new ConfigBuilder();
+        $configBuilder->addRepository(
+            'mborne/fake-a',
+            'https://github.com/mborne/fake-a.git',
+            false
+        );
+        $configBuilder->addRepository(
+            'mborne/fake-b',
+            'https://github.com/mborne/fake-b.git',
+            true
+        );
+
+        $satis = $configBuilder->getConfig();
+
+        $this->assertArrayHasKey('repositories',$satis);
+
+        $result = $satis['repositories'];
+        /* compare complete file */
+        $expectedPath = dirname(__FILE__).'/expected-repositories.json';
+        //file_put_contents($expectedPath,json_encode($result,JSON_PRETTY_PRINT));
+        $this->assertJsonStringEqualsJsonFile(
+            $expectedPath,
+            json_encode($result,JSON_PRETTY_PRINT)
+        );
+    }
+
 
 }
 

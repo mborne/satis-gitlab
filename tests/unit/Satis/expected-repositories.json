@@ -1,0 +1,21 @@
+[
+    {
+        "type": "composer",
+        "url": "https:\/\/packagist.org"
+    },
+    {
+        "type": "vcs",
+        "url": "https:\/\/github.com\/mborne\/fake-a.git"
+    },
+    {
+        "type": "vcs",
+        "url": "https:\/\/github.com\/mborne\/fake-b.git",
+        "options": {
+            "ssl": {
+                "verify_peer": false,
+                "verify_peer_name": false,
+                "allow_self_signed": true
+            }
+        }
+    }
+]
