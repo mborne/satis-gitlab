@@ -9,6 +9,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Logger\ConsoleLogger;
+
 use MBO\SatisGitlab\Satis\ConfigBuilder;
 
 /**
@@ -58,6 +60,8 @@ class GitlabToConfigCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
+        $logger = new ConsoleLogger($output);
+
         /*
          * parameters
          */
@@ -109,7 +113,7 @@ class GitlabToConfigCommand extends Command {
         /*
          * SCAN gitlab projects to find composer.json file in default branch
          */
-        $output->writeln(sprintf("<info>Listing gitlab repositories from %s...</info>", $gitlabUrl));
+        $logger->info(sprintf("Listing gitlab repositories from %s...", $gitlabUrl));
         $client = $this->createGitlabClient(
             $gitlabUrl,
             $gitlabAuthToken,
