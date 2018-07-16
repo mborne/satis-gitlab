@@ -2,8 +2,9 @@
 
 namespace MBO\SatisGitlab\Command;
 
-use Composer\Composer;
-use Composer\Config;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -12,6 +13,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 
 use MBO\SatisGitlab\Satis\ConfigBuilder;
+use GuzzleHttp\Client as GuzzleHttpClient;
+use MBO\SatisGitlab\Git\GitlabClient;
+
+
 
 /**
  * Generate SATIS configuration scanning gitlab repositories
@@ -20,7 +25,6 @@ use MBO\SatisGitlab\Satis\ConfigBuilder;
  */
 class GitlabToConfigCommand extends Command {
 
-    const PER_PAGE = 50;
     const MAX_PAGES = 10000;
 
     protected function configure() {
@@ -60,7 +64,7 @@ class GitlabToConfigCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-        $logger = new ConsoleLogger($output);
+        $logger = $this->createLogger($output);
 
         /*
          * parameters
@@ -114,41 +118,47 @@ class GitlabToConfigCommand extends Command {
          * SCAN gitlab projects to find composer.json file in default branch
          */
         $logger->info(sprintf("Listing gitlab repositories from %s...", $gitlabUrl));
-        $client = $this->createGitlabClient(
+        $client = GitlabClient::createClient(
             $gitlabUrl,
             $gitlabAuthToken,
-            $gitlabUnsafeSsl
+            $gitlabUnsafeSsl,
+            $logger
         );
 
-        $projectCriteria = array(
-            'page' => 1,
-            'per_page' => self::PER_PAGE
-        );
-
-        if ($projectFilter !== null) {
-            $projectCriteria['search'] = $projectFilter;
-            $output->writeln(sprintf("<info>Applying project filter %s...</info>", $projectFilter));
+        if ( ! empty($projectFilter) ) {
+            $logger->info(sprintf("Project filter : %s...", $projectFilter));
         }
 
+        /*
+         * Scan gitlab page until no more projects are found
+         */
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $projectCriteria['page'] = $page;
-
-            $projects = $client->projects()->all($projectCriteria);
+            $projects = $client->find(array(
+                'page' => $page,
+                'search' => $projectFilter
+            ));
             if ( empty($projects) ){
                 break;
             }
             foreach ($projects as $project) {
                 $projectUrl = $project['http_url_to_repo'];
                 try {
-                    $json = $client->repositoryFiles()->getRawFile($project['id'], 'composer.json', $project['default_branch']);
-                    $composer = json_decode($json, true);
+                    /* look for composer.json in default branch */
+                    $json = $client->getRawFile(
+                        $project['id'], 
+                        'composer.json', 
+                        $project['default_branch']
+                    );
 
+                    /* retrieve project name from composer.json content */
+                    $composer = json_decode($json, true);
                     $projectName = isset($composer['name']) ? $composer['name'] : null;
                     if (is_null($projectName)) {
                         $this->displayProjectInfo($output,$project,'<error>name not defined in composer.json</error>');
                         continue;
                     }
 
+                    /* add project to satis config */
                     $this->displayProjectInfo($output,$project,
                         "<info>$projectName:*</info>"
                     );
@@ -168,7 +178,7 @@ class GitlabToConfigCommand extends Command {
 
         /* get resulting configuration */
         $satis = $configBuilder->getConfig();
-        $output->writeln("<info>generate satis configuration file : $outputFile</info>");
+        $logger->info("Generate satis configuration file : $outputFile");
         $result = json_encode($satis, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         file_put_contents($outputFile, $result);
     }
@@ -192,45 +202,16 @@ class GitlabToConfigCommand extends Command {
 
 
     /**
-     * Create gitlab client
-     * 
-     * @param string $gitlabUrl
-     * @param string $gitlabAuthToken
-     * @param boolean $gitlabUnsafeSsl
-     * 
-     * @return \Gitlab\Client
+     * Create console logger
+     * @param OutputInterface $output
+     * @return ConsoleLogger
      */
-    protected function createGitlabClient(
-        $gitlabUrl, 
-        $gitlabAuthToken,
-        $gitlabUnsafeSsl
-    ) {
-        $guzzleOptions = array();
-        if ( $gitlabUnsafeSsl ){
-            $guzzleOptions['verify'] = false;
-        }
-        
-        /*
-         * Create HTTP client according to $gitlabUnsafeSsl
-         */
-        $guzzleClient = new \GuzzleHttp\Client($guzzleOptions);
-        $httpClient = new \Http\Adapter\Guzzle6\Client($guzzleClient);
-        $httpClientBuilder = new \Gitlab\HttpClient\Builder($httpClient);
-
-        /*
-         * Create gitlab client
-         */
-        $client = new \Gitlab\Client($httpClientBuilder);
-        $client->setUrl($gitlabUrl);
-
-        // Authenticate to gitlab, if a token is provided
-        if ( ! empty($gitlabAuthToken) ) {
-            $client
-                ->authenticate($gitlabAuthToken, \Gitlab\Client::AUTH_URL_TOKEN)
-            ;
-        }
-
-        return $client;
+    protected function createLogger(OutputInterface $output){
+        $verbosityLevelMap = array(
+            LogLevel::NOTICE => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::INFO   => OutputInterface::VERBOSITY_NORMAL,
+        );
+        return new ConsoleLogger($output,$verbosityLevelMap);
     }
 
 }
