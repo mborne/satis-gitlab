@@ -125,18 +125,18 @@ class GitlabToConfigCommand extends Command {
             $logger
         );
 
+        $findOptions = array();
         if ( ! empty($projectFilter) ) {
             $logger->info(sprintf("Project filter : %s...", $projectFilter));
+            $findOptions['search'] = $projectFilter;
         }
 
         /*
-         * Scan gitlab page until no more projects are found
+         * Scan gitlab pages until no more projects are found
          */
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $projects = $client->find(array(
-                'page' => $page,
-                'search' => $projectFilter
-            ));
+            $findOptions['page'] = $page;
+            $projects = $client->find($findOptions);
             if ( empty($projects) ){
                 break;
             }
@@ -154,29 +154,36 @@ class GitlabToConfigCommand extends Command {
                     $composer = json_decode($json, true);
                     $projectName = isset($composer['name']) ? $composer['name'] : null;
                     if (is_null($projectName)) {
-                        $this->displayProjectInfo($output,$project,'<error>name not defined in composer.json</error>');
+                        $logger->error($this->createProjectMessage(
+                            $project,
+                            "name not defined in composer.json"
+                        ));
                         continue;
                     }
 
                     /* add project to satis config */
-                    $this->displayProjectInfo($output,$project,
-                        "<info>$projectName:*</info>"
-                    );
+                    $logger->info($this->createProjectMessage(
+                        $project,
+                        "$projectName:*"
+                    ));
                     $configBuilder->addRepository(
                         $projectName, 
                         $projectUrl,
                         $gitlabUnsafeSsl
                     );
                 } catch (\Exception $e) {
-                    $this->displayProjectInfo($output,$project,
-                        'composer.json not found',
-                        OutputInterface::VERBOSITY_VERBOSE
-                    );
+                    $logger->debug($e->getMessage());
+                    $logger->error($this->createProjectMessage(
+                        $project,
+                        'composer.json not found'
+                    ));
                 }
             }
         }
 
-        /* get resulting configuration */
+        /*
+         * Write resulting config
+         */
         $satis = $configBuilder->getConfig();
         $logger->info("Generate satis configuration file : $outputFile");
         $result = json_encode($satis, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -184,20 +191,18 @@ class GitlabToConfigCommand extends Command {
     }
 
     /**
-     * display project information
+     * Create message for a given project 
      */
-    protected function displayProjectInfo(
-        OutputInterface $output,
+    protected function createProjectMessage(
         array $project,
-        $message,
-        $verbosity = OutputInterface::VERBOSITY_NORMAL
+        $message
     ){
-        $output->writeln(sprintf(
+        return sprintf(
             '%s (branch %s) : %s',
             $project['name_with_namespace'],
             $project['default_branch'],
             $message
-        ),$verbosity);
+        );
     }
 
 
