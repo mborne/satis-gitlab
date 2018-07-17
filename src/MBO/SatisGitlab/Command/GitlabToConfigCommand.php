@@ -15,6 +15,7 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 use MBO\SatisGitlab\Satis\ConfigBuilder;
 use GuzzleHttp\Client as GuzzleHttpClient;
 use MBO\SatisGitlab\Git\GitlabClient;
+use MBO\SatisGitlab\Git\ProjectInterface;
 
 
 
@@ -141,13 +142,13 @@ class GitlabToConfigCommand extends Command {
                 break;
             }
             foreach ($projects as $project) {
-                $projectUrl = $project['http_url_to_repo'];
+                $projectUrl = $project->getHttpUrl();
                 try {
                     /* look for composer.json in default branch */
                     $json = $client->getRawFile(
-                        $project['id'], 
+                        $project, 
                         'composer.json', 
-                        $project['default_branch']
+                        $project->getDefaultBranch()
                     );
 
                     /* retrieve project name from composer.json content */
@@ -194,13 +195,13 @@ class GitlabToConfigCommand extends Command {
      * Create message for a given project 
      */
     protected function createProjectMessage(
-        array $project,
+        ProjectInterface $project,
         $message
     ){
         return sprintf(
             '%s (branch %s) : %s',
-            $project['name_with_namespace'],
-            $project['default_branch'],
+            $project->getName(),
+            $project->getDefaultBranch(),
             $message
         );
     }

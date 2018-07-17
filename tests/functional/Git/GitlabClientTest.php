@@ -33,7 +33,7 @@ class GitlabClientTest extends TestCase {
         ));
         $projectsByName = array();
         foreach ( $projects as $project ){
-            $projectsByName[$project['path_with_namespace']] = $project;
+            $projectsByName[$project->getName()] = $project;
         }
         /* check project found */
         $this->assertArrayHasKey(
@@ -43,9 +43,9 @@ class GitlabClientTest extends TestCase {
 
         $project = $projectsByName['mborne/sample-composer'];
         $composer = $client->getRawFile(
-            $project['id'],
+            $project,
             'composer.json',
-            $project['default_branch']
+            $project->getDefaultBranch()
         );
         $this->assertContains('mborne@users.noreply.github.com',$composer);
     }

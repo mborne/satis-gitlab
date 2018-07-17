@@ -79,7 +79,7 @@ class GitlabClient {
      * 
      * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
      * 
-     * @return array
+     * @return ProjectInterface[]
      */
     public function find(array $options){
         $page     = empty($options['page']) ? 1 : $options['page'];
@@ -91,7 +91,12 @@ class GitlabClient {
         $this->logger->debug('GET '.$uri);
         $response = $this->httpClient->get($uri);
         $projects = json_decode( (string)$response->getBody(), true ) ;
-        return $projects;
+        
+        $result = array();
+        foreach ( $projects as $project ){
+            $result[] = new GitlabProject($project);
+        }
+        return $result;
     }
 
     /**
@@ -105,11 +110,11 @@ class GitlabClient {
      * @return string
      */
     public function getRawFile(
-        $projectId, 
+        ProjectInterface $project, 
         $filePath,
         $ref
     ){
-        $uri  = '/api/v4/projects/'.$projectId.'/repository/files/'.urlencode($filePath).'/raw';
+        $uri  = '/api/v4/projects/'.$project->getId().'/repository/files/'.urlencode($filePath).'/raw';
         $uri .= '?ref='.$ref;
         $this->logger->debug('GET '.$uri);
         $response = $this->httpClient->get($uri);
