@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
  * TODO add ClientInterface and RepositoryInterface to allow github, gogs and local repositories & co?
  * 
  */
-class GitlabClient {
+class GitlabClient implements ClientInterface {
 
     const DEFAULT_PER_PAGE = 50;
 
@@ -39,12 +39,10 @@ class GitlabClient {
     }
 
     /**
-     * Create gitlab client
-     * 
-     * @param string $gitlabUrl
-     * @param string $gitlabAuthToken
-     * @param boolean $gitlabUnsafeSsl
-     * 
+     * Create GitlabClient with options
+     *
+     * @param ClientOptions $options
+     * @param LoggerInterface $logger
      * @return GitlabClient
      */
     public static function createClient(
@@ -69,17 +67,15 @@ class GitlabClient {
         return new GitlabClient($httpClient,$logger);
     }
 
-
-    /**
-     * Find projects throw gitlab API
-     * 
-     * see https://docs.gitlab.com/ee/api/projects.html#search-for-projects-by-name for search (group option would be better?)
-     * 
-     * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
-     * 
-     * @return ProjectInterface[]
-     */
+    /*
+     * @{inheritDoc}
+     */    
     public function find(array $options){
+        /*
+         * refs : 
+         * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
+         * https://docs.gitlab.com/ee/api/projects.html#search-for-projects-by-name
+         */
         $page     = empty($options['page']) ? 1 : $options['page'];
         $perPage = empty($options['per_page']) ? self::DEFAULT_PER_PAGE : $options['per_page'];
         $uri = '/api/v4/projects?page='.$page.'&per_page='.$perPage;
@@ -97,21 +93,15 @@ class GitlabClient {
         return $result;
     }
 
-    /**
-     * 
-     * https://docs.gitlab.com/ee/api/repository_files.html#get-raw-file-from-repository
-     * 
-     * @param string $projectId ex : 123456
-     * @param string $filePath ex : composer.json
-     * @param string $ref ex : master
-     * 
-     * @return string
+    /*
+     * @{inheritDoc}
      */
     public function getRawFile(
         ProjectInterface $project, 
         $filePath,
         $ref
     ){
+        // ref : https://docs.gitlab.com/ee/api/repository_files.html#get-raw-file-from-repository
         $uri  = '/api/v4/projects/'.$project->getId().'/repository/files/'.urlencode($filePath).'/raw';
         $uri .= '?ref='.$ref;
         $this->logger->debug('GET '.$uri);
