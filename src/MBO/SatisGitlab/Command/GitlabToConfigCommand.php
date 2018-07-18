@@ -182,7 +182,7 @@ class GitlabToConfigCommand extends Command {
                     );
                 } catch (\Exception $e) {
                     $logger->debug($e->getMessage());
-                    $logger->error($this->createProjectMessage(
+                    $logger->warning($this->createProjectMessage(
                         $project,
                         'composer.json not found'
                     ));
@@ -198,6 +198,7 @@ class GitlabToConfigCommand extends Command {
         $result = json_encode($satis, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         file_put_contents($outputFile, $result);
     }
+
 
     /**
      * Create message for a given project 
