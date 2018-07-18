@@ -16,6 +16,7 @@ use MBO\SatisGitlab\Satis\ConfigBuilder;
 use GuzzleHttp\Client as GuzzleHttpClient;
 use MBO\SatisGitlab\Git\GitlabClient;
 use MBO\SatisGitlab\Git\ProjectInterface;
+use MBO\SatisGitlab\Git\ClientOptions;
 
 
 
@@ -40,10 +41,14 @@ class GitlabToConfigCommand extends Command {
             ->setHelp('look for composer.json in default gitlab branche, extract project name and register them in SATIS configuration')
             
             /* 
-             * project listing options 
+             * Git client options 
              */
             ->addArgument('gitlab-url', InputArgument::REQUIRED)
             ->addArgument('gitlab-token')
+
+            /*
+             * Project listing options
+             */
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
 
             /* 
@@ -68,16 +73,22 @@ class GitlabToConfigCommand extends Command {
         $logger = $this->createLogger($output);
 
         /*
-         * parameters
+         * Create git client according to parameters
          */
-        $gitlabUrl = $input->getArgument('gitlab-url');
-        $gitlabAuthToken = $input->getArgument('gitlab-token');
+        $clientOptions = new ClientOptions();
+        $clientOptions->setUrl($input->getArgument('gitlab-url'));
+        $clientOptions->setToken($input->getArgument('gitlab-token'));
         /*
          * TODO add option 
          * see https://github.com/mborne/satis-gitlab/issues/2
          */
-        $gitlabUnsafeSsl = true;
+        $clientOptions->setUnsafeSsl(true);
+        $client = GitlabClient::createClient(
+            $clientOptions,
+            $logger
+        );
 
+        
         $outputFile = $input->getOption('output');
         $projectFilter = $input->getOption('projectFilter');
 
@@ -104,27 +115,24 @@ class GitlabToConfigCommand extends Command {
         /*
          * Register gitlab domain to enable composer gitlab-* authentications
          */
-        $gitlabDomain = parse_url($gitlabUrl, PHP_URL_HOST);
+        $gitlabDomain = parse_url($clientOptions->getUrl(), PHP_URL_HOST);
         $configBuilder->addGitlabDomain($gitlabDomain);
 
-        if ( ! $input->getOption('no-token') && ! empty($gitlabAuthToken) ){
+        if ( ! $input->getOption('no-token') && $clientOptions->hasToken() ){
             $configBuilder->addGitlabToken(
                 $gitlabDomain, 
-                $gitlabAuthToken,
-                $gitlabUnsafeSsl
+                $clientOptions->getToken(),
+                $clientOptions->isUnsafeSsl()
             );
         }
 
         /*
          * SCAN gitlab projects to find composer.json file in default branch
          */
-        $logger->info(sprintf("Listing gitlab repositories from %s...", $gitlabUrl));
-        $client = GitlabClient::createClient(
-            $gitlabUrl,
-            $gitlabAuthToken,
-            $gitlabUnsafeSsl,
-            $logger
-        );
+        $logger->info(sprintf(
+            "Listing gitlab repositories from %s...", 
+            $clientOptions->getUrl()
+        ));
 
         $findOptions = array();
         if ( ! empty($projectFilter) ) {
@@ -170,7 +178,7 @@ class GitlabToConfigCommand extends Command {
                     $configBuilder->addRepository(
                         $projectName, 
                         $projectUrl,
-                        $gitlabUnsafeSsl
+                        $clientOptions->isUnsafeSsl()
                     );
                 } catch (\Exception $e) {
                     $logger->debug($e->getMessage());

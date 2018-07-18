@@ -48,22 +48,20 @@ class GitlabClient {
      * @return GitlabClient
      */
     public static function createClient(
-        $gitlabUrl, 
-        $gitlabAuthToken,
-        $gitlabUnsafeSsl,
+        ClientOptions $options,
         LoggerInterface $logger
     ) {
         /* create http client for gitlab */
         $guzzleOptions = array(
-            'base_uri' => $gitlabUrl,
+            'base_uri' => $options->getUrl(),
             'timeout'  => 10.0,
             'headers' => []
         );
-        if ( $gitlabUnsafeSsl ){
+        if ( $options->isUnsafeSsl() ){
             $guzzleOptions['verify'] = false;
         }
-        if ( ! empty($gitlabAuthToken) ){
-            $guzzleOptions['headers']['Private-Token'] = $gitlabAuthToken;
+        if ( $options->hasToken() ){
+            $guzzleOptions['headers']['Private-Token'] = $options->getToken();
         }
         $httpClient = new GuzzleHttpClient($guzzleOptions);
 

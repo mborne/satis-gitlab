@@ -5,6 +5,8 @@ use GuzzleHttp\Client as GuzzleHttpClient;
 use MBO\SatisGitlab\Git\GitlabClient;
 
 use Psr\Log\NullLogger;
+use MBO\SatisGitlab\Git\ClientclientOptions;
+use MBO\SatisGitlab\Git\ClientOptions;
 
 
 class GitlabClientTest extends TestCase {
@@ -19,11 +21,16 @@ class GitlabClientTest extends TestCase {
             return;
         }
 
+        $clientOptions = new ClientOptions();
+        $clientOptions
+            ->setUrl('https://gitlab.com')
+            ->setToken($gitlabToken)
+        ;
+
+
         /* create client */
         $client = GitlabClient::createClient(
-            'https://gitlab.com',
-            $gitlabToken,
-            false,
+            $clientOptions,
             new NullLogger()
         );
 
