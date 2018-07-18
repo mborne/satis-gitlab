@@ -15,11 +15,11 @@ cache:
 matrix:
     include:
         - php: 7.1
-          env: deps=low
+          env: deps=update
     fast_finish: true
 
 before_script:
-  - if [ "$deps" == "low" ]; then composer update --prefer-dist --prefer-lowest --prefer-stable; fi
-  - if [ "$deps" != "low" ]; then composer install --prefer-dist; fi
+  - if [ "$deps" == "update" ]; then composer update --prefer-dist; fi
+  - if [ "$deps" != "update" ]; then composer install --prefer-dist; fi
 
 script: vendor/bin/phpunit -c phpunit.xml.dist
