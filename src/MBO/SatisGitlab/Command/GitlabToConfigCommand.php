@@ -208,7 +208,7 @@ class GitlabToConfigCommand extends Command {
      * @see Build your regex to ignore https://www.phpliveregex.com/
      */
     protected function removeIgnored($projects, $ignore, OutputInterface $output) {
-        $noIgnored = [];
+        $notIgnored = [];
         foreach($projects as $project) {
             preg_match("/$ignore/", $project['path_with_namespace'], $ignored);
             if(empty($ignored)) {
