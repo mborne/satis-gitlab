@@ -2,3 +2,7 @@
 /vendor/
 /satis.json
 /web
+/output/
+
+/composer.phar
+

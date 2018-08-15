@@ -2,13 +2,24 @@
 
 namespace MBO\SatisGitlab\Command;
 
-use Composer\Composer;
-use Composer\Config;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Logger\ConsoleLogger;
+
+use MBO\SatisGitlab\Satis\ConfigBuilder;
+use GuzzleHttp\Client as GuzzleHttpClient;
+use MBO\SatisGitlab\Git\GitlabClient;
+use MBO\SatisGitlab\Git\ProjectInterface;
+use MBO\SatisGitlab\Git\ClientOptions;
+use MBO\SatisGitlab\Git\GitlabProject;
+
+
 
 /**
  * Generate SATIS configuration scanning gitlab repositories
@@ -17,10 +28,7 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class GitlabToConfigCommand extends Command {
 
-    const PER_PAGE = 50;
     const MAX_PAGES = 10000;
-    const HOMEPAGE_DEFAULT = '_default_';
-    const HOMEPAGE_DEFAULT_VALUE = 'http://localhost/satis/';
 
     protected function configure() {
         $templatePath = realpath( dirname(__FILE__).'/../Resources/default-template.json' );
@@ -32,221 +40,221 @@ class GitlabToConfigCommand extends Command {
             // the short description shown while running "php bin/console list"
             ->setDescription('generate satis configuration scanning gitlab repositories')
             ->setHelp('look for composer.json in default gitlab branche, extract project name and register them in SATIS configuration')
+            
+            /* 
+             * Git client options 
+             */
             ->addArgument('gitlab-url', InputArgument::REQUIRED)
             ->addArgument('gitlab-token')
 
+            /*
+             * Project listing options
+             */
+            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
+            // ignored projects/namespaces
+            ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
+            
+            /* 
+             * satis config generation options 
+             */
             // deep customization : template file extended with default configuration
             ->addOption('template', null, InputOption::VALUE_REQUIRED, 'template satis.json extended with gitlab repositories', $templatePath)
 
             // simple customization
-            ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage', static::HOMEPAGE_DEFAULT)
+            ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage')
             ->addOption('archive', null, InputOption::VALUE_NONE, 'enable archive mirroring')
             ->addOption('no-token', null, InputOption::VALUE_NONE, 'disable token writing in output configuration')
-            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
 
-            // output configuration
+            /* 
+             * output options
+             */
             ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')
-
-            // ignored projects/namespaces
-            ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'array of projects/namespaces to ignore', null)
-
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
+        $logger = $this->createLogger($output);
+
         /*
-         * parameters
+         * Create git client according to parameters
          */
-        $gitlabUrl = $input->getArgument('gitlab-url');
-        $gitlabAuthToken = $input->getArgument('gitlab-token');
+        $clientOptions = new ClientOptions();
+        $clientOptions->setUrl($input->getArgument('gitlab-url'));
+        $clientOptions->setToken($input->getArgument('gitlab-token'));
+        /*
+         * TODO add option 
+         * see https://github.com/mborne/satis-gitlab/issues/2
+         */
+        $clientOptions->setUnsafeSsl(true);
+        $client = GitlabClient::createClient(
+            $clientOptions,
+            $logger
+        );
+
+        
         $outputFile = $input->getOption('output');
         $projectFilter = $input->getOption('projectFilter');
         $ignore = $input->getOption('ignore');
 
         /*
-         * load template satis.json file
+         * Create configuration builder
          */
         $templatePath = $input->getOption('template');
         $output->writeln(sprintf("<info>Loading template %s...</info>", $templatePath));
-        $satis = json_decode( file_get_contents($templatePath), true) ;
+        $configBuilder = new ConfigBuilder($templatePath);
 
         /*
          * customize according to command line options
          */
         $homepage = $input->getOption('homepage');
-        $homepage_default = $homepage === static::HOMEPAGE_DEFAULT;
-        $homepage_empty = !isset($satis['homepage']);
-        if ( ! $homepage_default || $homepage_empty ) {
-          $satis['homepage'] = ($homepage_default) ? static::HOMEPAGE_DEFAULT_VALUE : $homepage;
+        if ( ! empty($homepage) ){
+            $configBuilder->setHomepage($homepage);
         }
 
         // mirroring
         if ( $input->getOption('archive') ){
-            $satis['require-dependencies'] = true;
-            $satis['archive'] = array(
-                'directory' => 'dist',
-                'format' => 'tar',
-                'skip-dev' => true
-            );
+            $configBuilder->enableArchive();
         }
 
         /*
          * Register gitlab domain to enable composer gitlab-* authentications
          */
-        $gitlabDomain = parse_url($gitlabUrl, PHP_URL_HOST);
-        if ( ! isset($satis['config']) ){
-            $satis['config'] = array();
-        }
-        if ( ! isset($satis['config']['gitlab-domains']) ){
-            $satis['config']['gitlab-domains'] = array($gitlabDomain);
-        }else{
-            $satis['config']['gitlab-domains'][] = $gitlabDomain ;
-        }
+        $gitlabDomain = parse_url($clientOptions->getUrl(), PHP_URL_HOST);
+        $configBuilder->addGitlabDomain($gitlabDomain);
 
-        if ( ! $input->getOption('no-token') && ! empty($gitlabAuthToken) ){
-            if ( ! isset($satis['config']['gitlab-token']) ){
-                $satis['config']['gitlab-token'] = array();
-            }
-            $satis['config']['gitlab-token'][$gitlabDomain] = $gitlabAuthToken;
+        if ( ! $input->getOption('no-token') && $clientOptions->hasToken() ){
+            $configBuilder->addGitlabToken(
+                $gitlabDomain, 
+                $clientOptions->getToken(),
+                $clientOptions->isUnsafeSsl()
+            );
         }
 
         /*
          * SCAN gitlab projects to find composer.json file in default branch
          */
-        $output->writeln(sprintf("<info>Listing gitlab repositories from %s...</info>", $gitlabUrl));
-        $client = $this->createGitlabClient($gitlabUrl, $gitlabAuthToken);
+        $logger->info(sprintf(
+            "Listing gitlab repositories from %s...", 
+            $clientOptions->getUrl()
+        ));
 
-        $projectCriteria = array(
-            'page' => 1,
-            'per_page' => self::PER_PAGE
-        );
-
-        if ($projectFilter !== null) {
-            $projectCriteria['search'] = $projectFilter;
-            $output->writeln(sprintf("<info>Applying project filter %s...</info>", $projectFilter));
+        $findOptions = array();
+        if ( ! empty($projectFilter) ) {
+            $logger->info(sprintf("Project filter : %s...", $projectFilter));
+            $findOptions['search'] = $projectFilter;
         }
 
-        if ($ignore !== null) {
-            $output->writeln(sprintf("<info>Ignore projects/namespaces by expression %s...</info>", $ignore));
-        }
-
+        /*
+         * Scan gitlab pages until no more projects are found
+         */
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $projectCriteria['page'] = $page;
-
-            $projects = $client->projects()->all($projectCriteria);
-
-            if ($ignore !== null) {
-                $projects = $this->removeIgnored($projects, $ignore, $output);
-            }
-
+            $findOptions['page'] = $page;
+            $projects = $client->find($findOptions);
             if ( empty($projects) ){
                 break;
             }
             foreach ($projects as $project) {
-                $projectUrl = $project['http_url_to_repo'];
-                try {
-                    $json = $client->repositoryFiles()->getRawFile($project['id'], 'composer.json', $project['default_branch']);
-                    $composer = json_decode($json, true);
+                $projectUrl = $project->getHttpUrl();
 
+                /* filter according to ignore option */
+                if ( $this->isIgnored($project, $ignore) ){
+                    $logger->info(sprintf("Ignoring project %s", $project->getName()));
+                    continue;
+                }
+
+                try {
+                    /* look for composer.json in default branch */
+                    $json = $client->getRawFile(
+                        $project, 
+                        'composer.json', 
+                        $project->getDefaultBranch()
+                    );
+
+                    /* retrieve project name from composer.json content */
+                    $composer = json_decode($json, true);
                     $projectName = isset($composer['name']) ? $composer['name'] : null;
                     if (is_null($projectName)) {
-                        $this->displayProjectInfo($output,$project,'<error>name not defined in composer.json</error>');
+                        $logger->error($this->createProjectMessage(
+                            $project,
+                            "name not defined in composer.json"
+                        ));
                         continue;
                     }
 
-                    $satis['repositories'][] = array(
-                        'type' => 'vcs',
-                        'url' => $projectUrl,
-                        //TODO improve SSL management
-                        'options' => [
-                            "ssl" => [
-                                "verify_peer" => false,
-                                "verify_peer_name" => false,
-                                "allow_self_signed" => true
-                            ]
-                        ]
-                    );
-                    $satis['require'][$projectName] = '*';
-                    $this->displayProjectInfo($output,$project,
-                        "<info>$projectName:*</info>"
+                    /* add project to satis config */
+                    $logger->info($this->createProjectMessage(
+                        $project,
+                        "$projectName:*"
+                    ));
+                    $configBuilder->addRepository(
+                        $projectName, 
+                        $projectUrl,
+                        $clientOptions->isUnsafeSsl()
                     );
                 } catch (\Exception $e) {
-                    $this->displayProjectInfo($output,$project,
-                        'composer.json not found',
-                        OutputInterface::VERBOSITY_VERBOSE
-                    );
+                    $logger->debug($e->getMessage());
+                    $logger->warning($this->createProjectMessage(
+                        $project,
+                        'composer.json not found'
+                    ));
                 }
             }
         }
 
-        $output->writeln("<info>generate satis configuration file : $outputFile</info>");
+        /*
+         * Write resulting config
+         */
+        $satis = $configBuilder->getConfig();
+        $logger->info("Generate satis configuration file : $outputFile");
         $result = json_encode($satis, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         file_put_contents($outputFile, $result);
     }
 
+
     /**
-     * display project information
+     * Create message for a given project 
      */
-    protected function displayProjectInfo(
-        OutputInterface $output,
-        array $project,
-        $message,
-        $verbosity = OutputInterface::VERBOSITY_NORMAL
+    protected function createProjectMessage(
+        ProjectInterface $project,
+        $message
     ){
-        $output->writeln(sprintf(
+        return sprintf(
             '%s (branch %s) : %s',
-            $project['name_with_namespace'],
-            $project['default_branch'],
+            $project->getName(),
+            $project->getDefaultBranch(),
             $message
-        ),$verbosity);
+        );
     }
 
     /**
-     * Ignore projects set in --ignore
-     * @param $projects
-     * @param $ignore
-     * @see Build your regex to ignore https://www.phpliveregex.com/
+     * Test if project is ignored according to ignore option
+     *
+     * @param GitlabProject $project
+     * @param string $ignore
+     * @return boolean
      */
-    protected function removeIgnored($projects, $ignore, OutputInterface $output) {
-        $notIgnored = [];
-        foreach($projects as $project) {
-            preg_match("/$ignore/", $project['path_with_namespace'], $ignored);
-            if(empty($ignored)) {
-                $notIgnored[] = $project;
-            } else {
-                $output->writeln(sprintf("<info>Ignoring Project %s </info>", $project['path_with_namespace']));
-            }
+    protected function isIgnored(GitlabProject $project, $ignore){
+        if ( empty($ignore) ){
+            return false;
         }
-        return $notIgnored;
+        if ( preg_match("/$ignore/", $project->getName() ) ){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     /**
-     * Create gitlab client
-     * @param string $gitlabUrl
-     * @param string $gitlabAuthToken
-     * @return \Gitlab\Client
+     * Create console logger
+     * @param OutputInterface $output
+     * @return ConsoleLogger
      */
-    protected function createGitlabClient($gitlabUrl, $gitlabAuthToken) {
-        /*
-         * create client with ssl verify disabled
-         */
-        $guzzleClient = new \GuzzleHttp\Client(array(
-            'verify' => false
-        ));
-        $httpClient = new \Http\Adapter\Guzzle6\Client($guzzleClient);
-        $httpClientBuilder = new \Gitlab\HttpClient\Builder($httpClient);
-
-        $client = new \Gitlab\Client($httpClientBuilder);
-        $client->setUrl($gitlabUrl);
-
-        // Authenticate to gitlab, if a token is provided
-        if ( ! empty($gitlabAuthToken) ) {
-            $client
-                ->authenticate($gitlabAuthToken, \Gitlab\Client::AUTH_URL_TOKEN)
-            ;
-        }
-
-        return $client;
+    protected function createLogger(OutputInterface $output){
+        $verbosityLevelMap = array(
+            LogLevel::NOTICE => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::INFO   => OutputInterface::VERBOSITY_NORMAL,
+        );
+        return new ConsoleLogger($output,$verbosityLevelMap);
     }
 
 }
