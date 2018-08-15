@@ -227,7 +227,7 @@ class GitlabToConfigCommand extends Command {
     }
 
     /**
-     * Test if project is ignored according to 
+     * Test if project is ignored according to ignore option
      *
      * @param GitlabProject $project
      * @param string $ignore
