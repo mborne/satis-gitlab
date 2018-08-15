@@ -47,6 +47,9 @@ class GitlabToConfigCommand extends Command {
             // output configuration
             ->addOption('output', 'O', InputOption::VALUE_REQUIRED, 'output config file', 'satis.json')
 
+            // ignored projects/namespaces
+            ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'array of projects/namespaces to ignore', null)
+
         ;
     }
 
@@ -58,6 +61,7 @@ class GitlabToConfigCommand extends Command {
         $gitlabAuthToken = $input->getArgument('gitlab-token');
         $outputFile = $input->getOption('output');
         $projectFilter = $input->getOption('projectFilter');
+        $ignore = $input->getOption('ignore');
 
         /*
          * load template satis.json file
@@ -122,10 +126,19 @@ class GitlabToConfigCommand extends Command {
             $output->writeln(sprintf("<info>Applying project filter %s...</info>", $projectFilter));
         }
 
+        if ($ignore !== null) {
+            $output->writeln(sprintf("<info>Ignore projects/namespaces by expression %s...</info>", $ignore));
+        }
+
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
             $projectCriteria['page'] = $page;
 
             $projects = $client->projects()->all($projectCriteria);
+
+            if ($ignore !== null) {
+                $projects = $this->removeIgnored($projects, $ignore, $output);
+            }
+
             if ( empty($projects) ){
                 break;
             }
@@ -188,6 +201,24 @@ class GitlabToConfigCommand extends Command {
         ),$verbosity);
     }
 
+    /**
+     * Ignore projects set in --ignore
+     * @param $projects
+     * @param $ignore
+     * @see Build your regex to ignore https://www.phpliveregex.com/
+     */
+    protected function removeIgnored($projects, $ignore, OutputInterface $output) {
+        $notIgnored = [];
+        foreach($projects as $project) {
+            preg_match("/$ignore/", $project['path_with_namespace'], $ignored);
+            if(empty($ignored)) {
+                $notIgnored[] = $project;
+            } else {
+                $output->writeln(sprintf("<info>Ignoring Project %s </info>", $project['path_with_namespace']));
+            }
+        }
+        return $notIgnored;
+    }
 
     /**
      * Create gitlab client
