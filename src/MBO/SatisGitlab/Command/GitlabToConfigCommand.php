@@ -17,6 +17,7 @@ use GuzzleHttp\Client as GuzzleHttpClient;
 use MBO\SatisGitlab\Git\GitlabClient;
 use MBO\SatisGitlab\Git\ProjectInterface;
 use MBO\SatisGitlab\Git\ClientOptions;
+use MBO\SatisGitlab\Git\GitlabProject;
 
 
 
@@ -50,7 +51,9 @@ class GitlabToConfigCommand extends Command {
              * Project listing options
              */
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
-
+            // ignored projects/namespaces
+            ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
+            
             /* 
              * satis config generation options 
              */
@@ -91,6 +94,7 @@ class GitlabToConfigCommand extends Command {
         
         $outputFile = $input->getOption('output');
         $projectFilter = $input->getOption('projectFilter');
+        $ignore = $input->getOption('ignore');
 
         /*
          * Create configuration builder
@@ -151,6 +155,13 @@ class GitlabToConfigCommand extends Command {
             }
             foreach ($projects as $project) {
                 $projectUrl = $project->getHttpUrl();
+
+                /* filter according to ignore option */
+                if ( $this->isIgnored($project, $ignore) ){
+                    $logger->info(sprintf("Ignoring project %s", $project->getName()));
+                    continue;
+                }
+
                 try {
                     /* look for composer.json in default branch */
                     $json = $client->getRawFile(
@@ -215,6 +226,23 @@ class GitlabToConfigCommand extends Command {
         );
     }
 
+    /**
+     * Test if project is ignored according to 
+     *
+     * @param GitlabProject $project
+     * @param string $ignore
+     * @return boolean
+     */
+    protected function isIgnored(GitlabProject $project, $ignore){
+        if ( empty($ignore) ){
+            return false;
+        }
+        if ( preg_match("/$ignore/", $project->getName() ) ){
+            return true;
+        }else{
+            return false;
+        }
+    }
 
     /**
      * Create console logger
