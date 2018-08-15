@@ -1,5 +1,7 @@
 # mbo/satis-gitlab
 
+[![Build Status](https://travis-ci.org/mborne/satis-gitlab.svg)](https://travis-ci.org/mborne/satis-gitlab)
+
 [PHP composer/satis](https://github.com/composer/satis) application extended with the hability to automate SATIS configuration according to GITLAB projects containing a `composer.json` file.
 
 It also provides a way to mirror PHP dependencies to allow offline builds.
