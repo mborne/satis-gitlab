@@ -53,7 +53,9 @@ class GitlabToConfigCommand extends Command {
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
             // ignored projects/namespaces
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
-            
+            // use a file in repository to include certain projects
+            ->addOption('use-file-to-include', 'f', InputOption::VALUE_OPTIONAL, 'include project according certain file existing, for ex : ".satisinclude', null)
+
             /* 
              * satis config generation options 
              */
@@ -91,10 +93,10 @@ class GitlabToConfigCommand extends Command {
             $logger
         );
 
-        
         $outputFile = $input->getOption('output');
         $projectFilter = $input->getOption('projectFilter');
         $ignore = $input->getOption('ignore');
+        $useFileToInclude = $input->getOption('use-file-to-include');
 
         /*
          * Create configuration builder
@@ -157,9 +159,17 @@ class GitlabToConfigCommand extends Command {
                 $projectUrl = $project->getHttpUrl();
 
                 /* filter according to ignore option */
-                if ( $this->isIgnored($project, $ignore) ){
+                if ($this->isIgnored($project, $ignore)) {
                     $logger->info(sprintf("Ignoring project %s", $project->getName()));
                     continue;
+                }
+
+                /* if '--use-file-to-include' is set check for certain file and include project only if file exists */
+                if ($useFileToInclude != null) {
+                    $satisIgnore = $this->getIncludeByFileName($client, $project, $logger, $input);
+                    if ($satisIgnore == false) {
+                        continue;
+                    }
                 }
 
                 try {
@@ -240,6 +250,31 @@ class GitlabToConfigCommand extends Command {
         if ( preg_match("/$ignore/", $project->getName() ) ){
             return true;
         }else{
+            return false;
+        }
+    }
+
+    /**
+     * Test if file exists in repository and ignore it if so
+     *
+     * @param $client
+     * @return boolean
+     */
+    protected function getIncludeByFileName($client, GitlabProject $project, $logger, $input) {
+
+        try {
+            $json = $client->getRawFile(
+                $project,
+                $input->getOption('use-file-to-include'),
+                $project->getDefaultBranch()
+            );
+            return true;
+
+        } catch (\Exception $e) {
+            $logger->debug($this->createProjectMessage(
+                $project,
+                'satis include "' . $input->getOption('use-file-to-include') . '"" file not found'
+            ));
             return false;
         }
     }
