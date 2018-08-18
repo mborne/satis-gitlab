@@ -53,7 +53,7 @@ class GitlabToConfigCommand extends Command {
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
             // ignored projects/namespaces
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
-            // use a file in repository to ignore certain projects
+            // use a file in repository to include certain projects
             ->addOption('use-file-to-include', 'f', InputOption::VALUE_OPTIONAL, 'include project according certain file existing, for ex : ".satisinclude', null)
 
             /* 
