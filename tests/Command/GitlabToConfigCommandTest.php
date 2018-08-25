@@ -37,6 +37,7 @@ class GitlabToConfigCommandTest extends TestCase {
             'gitlab-url' => 'http://gitlab.com',
             'gitlab-token' => $gitlabToken,
             '--projectFilter' => 'sample-composer',
+            '--include-if-has-file' => 'README.md',
             '--output' => $this->outputFile
         ));
 

@@ -19,6 +19,7 @@ use MBO\SatisGitlab\Git\ProjectInterface;
 use MBO\SatisGitlab\Git\ClientOptions;
 use MBO\SatisGitlab\Git\GitlabProject;
 use MBO\SatisGitlab\Filter\FilterCollection;
+use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
 
 
 
@@ -57,7 +58,7 @@ class GitlabToConfigCommand extends Command {
              * Project filters
              */
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
-            
+            ->addOption('include-if-has-file',null,InputOption::VALUE_REQUIRED, 'include in satis config if project contains a given file, for ex : ".satisinclude"', null)
             /* 
              * satis config generation options 
              */
@@ -95,10 +96,29 @@ class GitlabToConfigCommand extends Command {
             $logger
         );
 
-        
         $outputFile = $input->getOption('output');
+
+        // warning : this one is a "git client filter"
         $projectFilter = $input->getOption('projectFilter');
-        $filterCollection = $this->createFilterCollection($input,$logger);
+        
+        /*
+         * Create project filters according to input arguments
+         */
+        $filterCollection = new FilterCollection($logger);
+        /* ignore option */
+        if ( ! empty($input->getOption('ignore')) ){
+            $filterCollection->addFilter(new IgnoreRegexpFilter(
+                $input->getOption('ignore')
+            ));
+        }
+        /* include-if-has-file option */
+        if ( ! empty($input->getOption('include-if-has-file')) ){
+            $filterCollection->addFilter(new IncludeIfHasFileFilter(
+                $client,
+                $input->getOption('include-if-has-file'),
+                $logger
+            ));
+        }
 
         /*
          * Create configuration builder
@@ -228,23 +248,6 @@ class GitlabToConfigCommand extends Command {
             $project->getDefaultBranch(),
             $message
         );
-    }
-
-    /**
-     * Create FilterCollection according to input arguments
-     *
-     * @param InputInterface $input
-     * @param LoggerInterface $logger
-     * @return FilterCollection
-     */
-    protected function createFilterCollection(InputInterface $input, LoggerInterface $logger){
-        $filterCollection = new FilterCollection($logger);
-        /* ignore option */
-        if ( ! empty($input->getOption('ignore')) ){
-            $filterCollection->addFilter(new IgnoreRegexpFilter($input->getOption('ignore')));
-        }
-
-        return $filterCollection;
     }
 
     /**
