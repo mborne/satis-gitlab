@@ -18,6 +18,7 @@ use MBO\SatisGitlab\Git\GitlabClient;
 use MBO\SatisGitlab\Git\ProjectInterface;
 use MBO\SatisGitlab\Git\ClientOptions;
 use MBO\SatisGitlab\Git\GitlabProject;
+use MBO\SatisGitlab\Filter\FilterCollection;
 
 
 
@@ -48,10 +49,13 @@ class GitlabToConfigCommand extends Command {
             ->addArgument('gitlab-token')
 
             /*
-             * Project listing options
+             * Project listing options (git level)
              */
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
-            // ignored projects/namespaces
+
+            /*
+             * Project filters
+             */
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
             
             /* 
@@ -94,7 +98,7 @@ class GitlabToConfigCommand extends Command {
         
         $outputFile = $input->getOption('output');
         $projectFilter = $input->getOption('projectFilter');
-        $ignore = $input->getOption('ignore');
+        $filterCollection = $this->createFilterCollection($input,$logger);
 
         /*
          * Create configuration builder
@@ -156,8 +160,8 @@ class GitlabToConfigCommand extends Command {
             foreach ($projects as $project) {
                 $projectUrl = $project->getHttpUrl();
 
-                /* filter according to ignore option */
-                if ( $this->isIgnored($project, $ignore) ){
+                /* filter according to command line options */
+                if ( ! $filterCollection->isAccepted($project) ){
                     $logger->info(sprintf("Ignoring project %s", $project->getName()));
                     continue;
                 }
@@ -227,21 +231,20 @@ class GitlabToConfigCommand extends Command {
     }
 
     /**
-     * Test if project is ignored according to ignore option
+     * Create FilterCollection according to input arguments
      *
-     * @param GitlabProject $project
-     * @param string $ignore
-     * @return boolean
+     * @param InputInterface $input
+     * @param LoggerInterface $logger
+     * @return FilterCollection
      */
-    protected function isIgnored(GitlabProject $project, $ignore){
-        if ( empty($ignore) ){
-            return false;
+    protected function createFilterCollection(InputInterface $input, LoggerInterface $logger){
+        $filterCollection = new FilterCollection($logger);
+        /* ignore option */
+        if ( ! empty($input->getOption('ignore')) ){
+            $filterCollection->addFilter(new IgnoreRegexpFilter($input->getOption('ignore')));
         }
-        if ( preg_match("/$ignore/", $project->getName() ) ){
-            return true;
-        }else{
-            return false;
-        }
+
+        return $filterCollection;
     }
 
     /**
