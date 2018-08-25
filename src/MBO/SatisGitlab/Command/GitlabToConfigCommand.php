@@ -19,6 +19,8 @@ use MBO\SatisGitlab\Git\ProjectInterface;
 use MBO\SatisGitlab\Git\ClientOptions;
 use MBO\SatisGitlab\Git\GitlabProject;
 use MBO\SatisGitlab\Filter\FilterCollection;
+
+use MBO\SatisGitlab\Filter\IgnoreRegexpFilter;
 use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
 
 
@@ -171,6 +173,7 @@ class GitlabToConfigCommand extends Command {
         /*
          * Scan gitlab pages until no more projects are found
          */
+        $projectCount = 0;
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
             $findOptions['page'] = $page;
             $projects = $client->find($findOptions);
@@ -206,6 +209,7 @@ class GitlabToConfigCommand extends Command {
                     }
 
                     /* add project to satis config */
+                    $projectCount++;
                     $logger->info($this->createProjectMessage(
                         $project,
                         "$projectName:*"
@@ -223,6 +227,13 @@ class GitlabToConfigCommand extends Command {
                     ));
                 }
             }
+        }
+
+        /* notify number of project found */
+        if ( $projectCount == 0 ){
+            $logger->error("No project found!");
+        }else{
+            $logger->info(sprintf("Number of project found : %s",$projectCount));
         }
 
         /*
