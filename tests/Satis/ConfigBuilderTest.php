@@ -1,10 +1,11 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace Tests\SatisGitlab\Satis;
+
+use Tests\SatisGitlab\TestCase;
 
 use Symfony\Component\Console\Tester\CommandTester;
 use MBO\SatisGitlab\Satis\ConfigBuilder;
-
 
 class ConfigBuilderTest extends TestCase {
 

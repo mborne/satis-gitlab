@@ -1,6 +1,8 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace Tests\SatisGitlab\Command;
+
+use Tests\SatisGitlab\TestCase;
 
 use Symfony\Component\Console\Tester\CommandTester;
 use MBO\SatisGitlab\Command\GitlabToConfigCommand;

@@ -1,6 +1,8 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace Tests\SatisGitlab\Filter;
+
+use Tests\SatisGitlab\TestCase;
 
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -11,23 +13,6 @@ use MBO\SatisGitlab\Git\ProjectInterface;
  * Test IgnoreRegexpFilter
  */
 class IgnoreRegexpFilterTest extends TestCase {
-
-    /**
-     * Create a fake project with a given name
-     *
-     * @param string $projectName
-     * @return ProjectInterface
-     */
-    private function createMockProject($projectName){
-        $project = $this->getMockBuilder(ProjectInterface::class)
-            ->getMock()
-        ;
-        $project->expects($this->any())
-            ->method('getName')
-            ->willReturn($projectName)
-        ;
-        return $project;
-    }
 
     public function testExample(){
         $filter = new IgnoreRegexpFilter('(^phpstorm|^typo3\/library)');
@@ -46,7 +31,6 @@ class IgnoreRegexpFilterTest extends TestCase {
                 'unexpected result for '.$projectName
             );
         }
-
         
     }
 

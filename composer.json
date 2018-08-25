@@ -10,7 +10,7 @@
         "psr-4": {"": "src/"}
     },
     "autoload-dev": {
-        "psr-4": {"MBO\\SatisGitlab\\": "test/functional"}
+        "psr-4": {"Tests\\SatisGitlab\\": "tests"}
     },
     "bin": [
         "bin/satis-gitlab"
