@@ -1,6 +1,8 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace Tests\SatisGitlab\Command;
+
+use Tests\SatisGitlab\TestCase;
 
 use Symfony\Component\Console\Tester\CommandTester;
 use MBO\SatisGitlab\Command\GitlabToConfigCommand;
@@ -35,6 +37,7 @@ class GitlabToConfigCommandTest extends TestCase {
             'gitlab-url' => 'http://gitlab.com',
             'gitlab-token' => $gitlabToken,
             '--projectFilter' => 'sample-composer',
+            '--include-if-has-file' => 'README.md',
             '--output' => $this->outputFile
         ));
 

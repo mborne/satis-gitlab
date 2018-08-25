@@ -12,11 +12,8 @@
 >
 
     <testsuites>
-        <testsuite name="satis-gitlab-functional">
-            <directory>./tests/functional</directory>
-        </testsuite>
-        <testsuite name="satis-gitlab-unit">
-            <directory>./tests/unit</directory>
+        <testsuite name="satis-gitlab">
+            <directory>./tests</directory>
         </testsuite>
     </testsuites>
 

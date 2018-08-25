@@ -18,6 +18,8 @@ use MBO\SatisGitlab\Git\GitlabClient;
 use MBO\SatisGitlab\Git\ProjectInterface;
 use MBO\SatisGitlab\Git\ClientOptions;
 use MBO\SatisGitlab\Git\GitlabProject;
+use MBO\SatisGitlab\Filter\FilterCollection;
+use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
 
 
 
@@ -48,12 +50,15 @@ class GitlabToConfigCommand extends Command {
             ->addArgument('gitlab-token')
 
             /*
-             * Project listing options
+             * Project listing options (git level)
              */
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
-            // ignored projects/namespaces
+
+            /*
+             * Project filters
+             */
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
-            
+            ->addOption('include-if-has-file',null,InputOption::VALUE_REQUIRED, 'include in satis config if project contains a given file, for ex : ".satisinclude"', null)
             /* 
              * satis config generation options 
              */
@@ -91,10 +96,29 @@ class GitlabToConfigCommand extends Command {
             $logger
         );
 
-        
         $outputFile = $input->getOption('output');
+
+        // warning : this one is a "git client filter"
         $projectFilter = $input->getOption('projectFilter');
-        $ignore = $input->getOption('ignore');
+        
+        /*
+         * Create project filters according to input arguments
+         */
+        $filterCollection = new FilterCollection($logger);
+        /* ignore option */
+        if ( ! empty($input->getOption('ignore')) ){
+            $filterCollection->addFilter(new IgnoreRegexpFilter(
+                $input->getOption('ignore')
+            ));
+        }
+        /* include-if-has-file option */
+        if ( ! empty($input->getOption('include-if-has-file')) ){
+            $filterCollection->addFilter(new IncludeIfHasFileFilter(
+                $client,
+                $input->getOption('include-if-has-file'),
+                $logger
+            ));
+        }
 
         /*
          * Create configuration builder
@@ -156,8 +180,8 @@ class GitlabToConfigCommand extends Command {
             foreach ($projects as $project) {
                 $projectUrl = $project->getHttpUrl();
 
-                /* filter according to ignore option */
-                if ( $this->isIgnored($project, $ignore) ){
+                /* filter according to command line options */
+                if ( ! $filterCollection->isAccepted($project) ){
                     $logger->info(sprintf("Ignoring project %s", $project->getName()));
                     continue;
                 }
@@ -224,24 +248,6 @@ class GitlabToConfigCommand extends Command {
             $project->getDefaultBranch(),
             $message
         );
-    }
-
-    /**
-     * Test if project is ignored according to ignore option
-     *
-     * @param GitlabProject $project
-     * @param string $ignore
-     * @return boolean
-     */
-    protected function isIgnored(GitlabProject $project, $ignore){
-        if ( empty($ignore) ){
-            return false;
-        }
-        if ( preg_match("/$ignore/", $project->getName() ) ){
-            return true;
-        }else{
-            return false;
-        }
     }
 
     /**

@@ -1,6 +1,9 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace Tests\SatisGitlab\Git;
+
+use Tests\SatisGitlab\TestCase;
+
 use GuzzleHttp\Client as GuzzleHttpClient;
 use MBO\SatisGitlab\Git\GitlabClient;
 
