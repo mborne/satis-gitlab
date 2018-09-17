@@ -1,0 +1,29 @@
+<?php
+
+namespace MBO\SatisGitlab\Filter;
+
+use MBO\SatisGitlab\Git\ProjectInterface;
+
+/**
+ * Ignore project according to a regular expression
+ */
+class ProjectTypeFilter implements ProjectFilterInterface {
+    /**
+     * @var string
+     */
+    protected $projectType;
+
+    public function __construct($type)
+    {
+        assert(!empty($type));        
+        $this->projectType = $type;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    public function isAccepted(ProjectInterface $project)
+    {
+        return ($this->projectType === $project->getType());
+    }
+}
