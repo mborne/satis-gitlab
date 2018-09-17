@@ -126,7 +126,9 @@ class GitlabToConfigCommand extends Command {
         /* project-type option */
         if ( ! empty($input->getOption('project-type')) ){
             $filterCollection->addFilter(new ProjectTypeFilter(
-                $input->getOption('project-type')
+                $input->getOption('project-type'),
+                $client,
+                $logger
             ));
         }
 
