@@ -22,6 +22,7 @@ use MBO\SatisGitlab\Filter\FilterCollection;
 
 use MBO\SatisGitlab\Filter\IgnoreRegexpFilter;
 use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
+use MBO\SatisGitlab\Filter\ProjectTypeFilter;
 
 
 
@@ -61,6 +62,7 @@ class GitlabToConfigCommand extends Command {
              */
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
             ->addOption('include-if-has-file',null,InputOption::VALUE_REQUIRED, 'include in satis config if project contains a given file, for ex : ".satisinclude"', null)
+            ->addOption('project-type',null,InputOption::VALUE_REQUIRED, 'include in satis config if project is of a specified type, for ex : "library"', null)
             /* 
              * satis config generation options 
              */
@@ -118,6 +120,14 @@ class GitlabToConfigCommand extends Command {
             $filterCollection->addFilter(new IncludeIfHasFileFilter(
                 $client,
                 $input->getOption('include-if-has-file'),
+                $logger
+            ));
+        }
+        /* project-type option */
+        if ( ! empty($input->getOption('project-type')) ){
+            $filterCollection->addFilter(new ProjectTypeFilter(
+                $input->getOption('project-type'),
+                $client,
                 $logger
             ));
         }
