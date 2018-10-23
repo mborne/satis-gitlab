@@ -64,7 +64,7 @@ class GitlabToConfigCommand extends Command {
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
             ->addOption('include-if-has-file',null,InputOption::VALUE_REQUIRED, 'include in satis config if project contains a given file, for ex : ".satisinclude"', null)
             ->addOption('project-type',null,InputOption::VALUE_REQUIRED, 'include in satis config if project is of a specified type, for ex : "library"', null)
-            ->addOption('gitlab-groups',null,InputOption::VALUE_REQUIRED, 'include in satis config if gitlab project namespace is in the list, for ex : "2,Diaspora"', null)
+            ->addOption('gitlab-namespace',null,InputOption::VALUE_REQUIRED, 'include in satis config if gitlab project namespace is in the list, for ex : "2,Diaspora"', null)
             /* 
              * satis config generation options 
              */
@@ -134,9 +134,9 @@ class GitlabToConfigCommand extends Command {
             ));
         }
         /* project-type option */
-        if ( ! empty($input->getOption('gitlab-groups')) ){
+        if ( ! empty($input->getOption('gitlab-namespace')) ){
             $filterCollection->addFilter(new GitlabNamespaceFilter(
-                $input->getOption('gitlab-groups')
+                $input->getOption('gitlab-namespace')
             ));
         }
 
