@@ -5,6 +5,8 @@ namespace MBO\SatisGitlab\Git;
 use \GuzzleHttp\Client as GuzzleHttpClient;
 use Psr\Log\LoggerInterface;
 
+use MBO\SatisGitlab\Filter\ProjectFilterInterface;
+
 /**
  * Find gitlab projects
  * 
@@ -43,6 +45,90 @@ class GitlabClient implements ClientInterface {
      * @{inheritDoc}
      */    
     public function find(FindOptions $options){
+        if ( empty($options->getUsers()) && empty($options->getOrganizations()) ){
+            return $this->findBySearch($options);
+        }
+
+        $result = array();
+        foreach ( $options->getUsers() as $user ){
+            $result = array_merge($result,$this->findByUser(
+                $user,
+                $options->getFilterCollection()
+            ));
+        }
+        foreach ( $options->getOrganizations() as $org ){
+            $result = array_merge($result,$this->findByGroup(
+                $org,
+                $options->getFilterCollection()
+            ));
+        }
+        return $result;
+    }
+
+    /**
+     * Find projects by username
+     *
+     * @return void
+     */
+    protected function findByUser(
+        $user,
+        ProjectFilterInterface $projectFilter
+    ){
+        $result = array();
+        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
+            $uri = '/api/v4/users/'.$user.'/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
+
+            $this->logger->debug('GET '.$uri);
+            $response = $this->httpClient->get($uri);
+            $rawProjects = json_decode( (string)$response->getBody(), true ) ;
+            if ( empty($rawProjects) ){
+                break;
+            }
+            foreach ( $rawProjects as $rawProject ){
+                $project = new GitlabProject($rawProject);
+                if ( ! $projectFilter->isAccepted($project) ){
+                    continue;
+                }
+                $result[] = $project;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Find projects by group
+     *
+     * @return void
+     */
+    protected function findByGroup(
+        $group,
+        ProjectFilterInterface $projectFilter
+    ){
+        $result = array();
+        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
+            $uri = '/api/v4/groups/'.urlencode($group).'/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
+
+            $this->logger->debug('GET '.$uri);
+            $response = $this->httpClient->get($uri);
+            $rawProjects = json_decode( (string)$response->getBody(), true ) ;
+            if ( empty($rawProjects) ){
+                break;
+            }
+            foreach ( $rawProjects as $rawProject ){
+                $project = new GitlabProject($rawProject);
+                if ( ! $projectFilter->isAccepted($project) ){
+                    continue;
+                }
+                $result[] = $project;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Find all projects using option search
+     */
+    protected function findBySearch(FindOptions $options){
         /*
          * refs : 
          * https://docs.gitlab.com/ee/api/projects.html#list-all-projects

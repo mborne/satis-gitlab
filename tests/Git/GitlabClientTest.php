@@ -16,13 +16,12 @@ use MBO\SatisGitlab\Git\FindOptions;
 class GitlabClientTest extends TestCase {
 
     /**
-     * Ensure client can find mborne/sample-composer
+     * @return GitlabClient
      */
-    public function testGitlabDotComAuthenticated(){
+    protected function createGitlabClient(){
         $gitlabToken = getenv('SATIS_GITLAB_TOKEN');
         if ( empty($gitlabToken) ){
             $this->markTestSkipped("Missing SATIS_GITLAB_TOKEN for gitlab.com");
-            return;
         }
 
         $clientOptions = new ClientOptions();
@@ -31,12 +30,51 @@ class GitlabClientTest extends TestCase {
             ->setToken($gitlabToken)
         ;
 
-
         /* create client */
-        $client = ClientFactory::createClient(
+        return ClientFactory::createClient(
             $clientOptions,
             new NullLogger()
         );
+    }
+
+    /**
+     * Ensure client can find mborne/sample-composer by username
+     */
+    public function testGitlabDotComByUser(){
+        /* create client */
+        $client = $this->createGitlabClient();
+        $this->assertInstanceOf(GitlabClient::class,$client);
+
+        /* search projects */
+        $findOptions = new FindOptions();
+        $findOptions->setUsers(array('mborne'));
+        $projects = $client->find($findOptions);
+        $projectsByName = array();
+        foreach ( $projects as $project ){
+            $projectsByName[$project->getName()] = $project;
+        }
+        /* check project found */
+        $this->assertArrayHasKey(
+            'mborne/sample-composer',
+            $projectsByName
+        );
+
+        $project = $projectsByName['mborne/sample-composer'];
+        $composer = $client->getRawFile(
+            $project,
+            'composer.json',
+            $project->getDefaultBranch()
+        );
+        $this->assertContains('mborne@users.noreply.github.com',$composer);
+    }
+
+
+    /**
+     * Ensure client can find mborne/sample-composer with search
+     */
+    public function testGitlabDotComSearch(){
+        /* create client */
+        $client = $this->createGitlabClient();
         $this->assertInstanceOf(GitlabClient::class,$client);
 
         /* search projects */
