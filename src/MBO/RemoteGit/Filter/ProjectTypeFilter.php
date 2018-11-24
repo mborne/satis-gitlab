@@ -46,6 +46,17 @@ class ProjectTypeFilter implements ProjectFilterInterface {
     /**
      * {@inheritDoc}
      */
+    public function getDescription(){
+        return sprintf(
+            "composer.json should exists and type should be '%s'",
+            $this->projectType
+        );
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
     public function isAccepted(ProjectInterface $project)
     {
         try {

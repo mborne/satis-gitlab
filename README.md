@@ -77,7 +77,7 @@ bin/satis-gitlab gitlab-to-config https://gitlab.com $SATIS_GITLAB_TOKEN -vv --u
 Experimental support for github allows to perform :
 
 ```bash
-bin/satis-gitlab gitlab-to-config https://github.com $GITHUB_TOKEN --orgs=symfony --users=mborne
+bin/satis-gitlab gitlab-to-config https://github.com  $SATIS_GITHUB_TOKEN --orgs=symfony --users=mborne
 bin/satis-gitlab build --skip-errors satis.json web
 ```
 

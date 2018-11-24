@@ -38,6 +38,14 @@ class IncludeIfHasFileFilter implements ProjectFilterInterface {
     /**
      * {@inheritDoc}
      */
+    public function getDescription(){
+        return sprintf("File '%s' should exist in default branch",$this->filePath);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
     public function isAccepted(ProjectInterface $project)
     {
         try {

@@ -43,6 +43,13 @@ class GitlabNamespaceFilter implements ProjectFilterInterface {
     /**
      * {@inheritDoc}
      */
+    public function getDescription(){
+        return "gitlab namespace should be one of [".implode(', ',$this->groups)."]";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function isAccepted(ProjectInterface $project)
     {
         $project_info = $project->getRawMetadata();

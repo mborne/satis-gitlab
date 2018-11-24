@@ -24,6 +24,13 @@ class IgnoreRegexpFilter implements ProjectFilterInterface {
     /**
      * {@inheritDoc}
      */
+    public function getDescription(){
+        return "project name should not match /".$this->ignoreRegexp+"/";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function isAccepted(ProjectInterface $project)
     {
         if ( preg_match("/$this->ignoreRegexp/", $project->getName() ) ){
