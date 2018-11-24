@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\SatisGitlab\Filter;
+namespace MBO\RemoteGit\Tests\Filter;
 
-use Tests\SatisGitlab\TestCase;
+use MBO\SatisGitlab\Tests\TestCase;
 
 use Symfony\Component\Console\Tester\CommandTester;
 

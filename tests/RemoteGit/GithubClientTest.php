@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\SatisGitlab\Git;
+namespace MBO\RemoteGit\Tests;
 
-use Tests\SatisGitlab\TestCase;
+use MBO\SatisGitlab\Tests\TestCase;
 
 use GuzzleHttp\Client as GuzzleHttpClient;
 use MBO\RemoteGit\GitlabClient;

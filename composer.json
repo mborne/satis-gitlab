@@ -10,7 +10,10 @@
         "psr-4": {"": "src/"}
     },
     "autoload-dev": {
-        "psr-4": {"Tests\\SatisGitlab\\": "tests"}
+        "psr-4": {
+            "MBO\\SatisGitlab\\Tests\\": "tests/SatisGitlab",
+            "MBO\\RemoteGit\\Tests\\": "tests/RemoteGit"
+        }
     },
     "bin": [
         "bin/satis-gitlab"

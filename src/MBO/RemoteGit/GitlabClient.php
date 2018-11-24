@@ -80,6 +80,7 @@ class GitlabClient implements ClientInterface {
     ){
         return $this->fetchAllPages(
             '/api/v4/users/'.urlencode($user).'/projects',
+            array(),
             $projectFilter
         );
     }
@@ -95,6 +96,7 @@ class GitlabClient implements ClientInterface {
     ){
         return $this->fetchAllPages(
             '/api/v4/groups/'.urlencode($group).'/projects',
+            array(),
             $projectFilter
         );
     }
@@ -104,33 +106,37 @@ class GitlabClient implements ClientInterface {
      */
     protected function findBySearch(FindOptions $options){
         $path = '/api/v4/projects';
+        $params = array();
         if ( $options->hasSearch() ){
-            $path .= '?search='.$options->getSearch();
+            $params['search'] = $options->getSearch();
         }
         return $this->fetchAllPages(
             $path,
+            $params,
             $options->getFilterCollection()
         );
     }
 
 
     /**
-     * Fetch all pages for a given path
+     * Fetch all pages for a given path with query params
      *
-     * @param string $path "/api/v4/projects?search=something", "/api/v4/projects"
+     * @param string $path ex : "/api/v4/projects"
+     * @param array $params ex : array('search'=>'sample-composer')
      * @param ProjectFilterInterface $projectFilter
-     * @return void
+     * @return ProjectInterface[]
      */
     private function fetchAllPages(
         $path,
+        array $params = array(),
         ProjectFilterInterface $projectFilter
     ){
         $result = array();
-        if ( strpos($path,'?') === false ){
-            $path .= '?';
-        }
+        
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $uri = $path.'page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
+            $params['page']     = $page;
+            $params['per_page'] = self::DEFAULT_PER_PAGE;
+            $uri = $path.'?'.$this->implodeParams($params);
             $this->logger->debug('GET '.$uri);
             $response = $this->httpClient->get($uri);
             $rawProjects = json_decode( (string)$response->getBody(), true ) ;
@@ -147,6 +153,20 @@ class GitlabClient implements ClientInterface {
         }
 
         return $result;
+    }
+
+    /**
+     * Implode params to performs request
+     *
+     * @param array $params key=>value
+     * @return string
+     */
+    private function implodeParams($params){
+        $parts = array();
+        foreach ( $params as $key => $value ){
+            $parts[] = $key.'='.urlencode($value);
+        }
+        return implode('&',$parts);
     }
 
     /*

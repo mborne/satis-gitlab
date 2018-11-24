@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\SatisGitlab\Satis;
+namespace MBO\SatisGitlab\Tests\Satis;
 
-use Tests\SatisGitlab\TestCase;
+use MBO\SatisGitlab\Tests\TestCase;
 
 use Symfony\Component\Console\Tester\CommandTester;
 use MBO\SatisGitlab\Satis\ConfigBuilder;
