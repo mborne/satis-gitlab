@@ -91,6 +91,23 @@ Some command line options provide a basic customization options. You may also us
 [default-template.json](src/MBO/SatisGitlab/Resources/default-template.json)
 
 
+## Experimental support for github
+
+Experimental support for github allows to perform :
+
+```bash
+bin/satis-gitlab gitlab-to-config https://api.github.com/orgs/symfony/repos $GITHUB_TOKEN
+bin/satis-gitlab gitlab-to-config https://api.github.com/users/mborne/repos $GITHUB_TOKEN
+bin/satis-gitlab build --skip-errors satis.json web
+```
+
+Note that :
+
+* GITHUB_TOKEN is required to avoid rate request limitation
+* Config may change (maybe better to support `--orgs=symfony,FriendsOfSymfony --users=mborne`)
+* `src/MBO/SatisGitlab/Git` will probably be moved to a dedicated project `hosted-git-client` (avoid using this classes)
+
+
 ## Requirements
 
 * GITLAB API v4

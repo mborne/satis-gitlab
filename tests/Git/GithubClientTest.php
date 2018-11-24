@@ -10,55 +10,56 @@ use MBO\SatisGitlab\Git\GitlabClient;
 use Psr\Log\NullLogger;
 use MBO\SatisGitlab\Git\ClientOptions;
 use MBO\SatisGitlab\Git\ClientFactory;
+use MBO\SatisGitlab\Git\GithubClient;
+use MBO\SatisGitlab\Git\GithubProject;
 
-
-class GitlabClientTest extends TestCase {
+class GithubClientTest extends TestCase {
 
     /**
-     * Ensure client can find mborne/sample-composer
+     * Ensure client can find mborne's projects
      */
-    public function testGitlabDotComAuthenticated(){
-        $gitlabToken = getenv('SATIS_GITLAB_TOKEN');
-        if ( empty($gitlabToken) ){
-            $this->markTestSkipped("Missing SATIS_GITLAB_TOKEN for gitlab.com");
-            return;
-        }
-
+    public function testUserRepositories(){
         $clientOptions = new ClientOptions();
         $clientOptions
-            ->setUrl('https://gitlab.com')
-            ->setToken($gitlabToken)
+            ->setUrl('https://api.github.com/users/mborne/repos')
         ;
-
 
         /* create client */
         $client = ClientFactory::createClient(
             $clientOptions,
             new NullLogger()
         );
-        $this->assertInstanceOf(GitlabClient::class,$client);
+        $this->assertInstanceOf(GithubClient::class,$client);
 
         /* search projects */
-        $projects = $client->find(array(
-            'search' => 'sample-composer'
-        ));
+        $options = array();
+        $projects = $client->find($options);
         $projectsByName = array();
         foreach ( $projects as $project ){
+            $this->assertInstanceOf(GithubProject::class,$project);
             $projectsByName[$project->getName()] = $project;
         }
+
         /* check project found */
         $this->assertArrayHasKey(
-            'mborne/sample-composer',
+            'mborne/satis-gitlab',
             $projectsByName
         );
 
-        $project = $projectsByName['mborne/sample-composer'];
+        $project = $projectsByName['mborne/satis-gitlab'];
         $composer = $client->getRawFile(
             $project,
             'composer.json',
             $project->getDefaultBranch()
         );
         $this->assertContains('mborne@users.noreply.github.com',$composer);
+
+        $testFileInSubdirectory = $client->getRawFile(
+            $project,
+            'tests/TestCase.php',
+            $project->getDefaultBranch()
+        );
+        $this->assertContains('class TestCase',$testFileInSubdirectory);
     }
 
 }

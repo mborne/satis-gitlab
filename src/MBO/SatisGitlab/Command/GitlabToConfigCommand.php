@@ -24,6 +24,7 @@ use MBO\SatisGitlab\Filter\GitlabNamespaceFilter;
 use MBO\SatisGitlab\Filter\IgnoreRegexpFilter;
 use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
 use MBO\SatisGitlab\Filter\ProjectTypeFilter;
+use MBO\SatisGitlab\Git\ClientFactory;
 
 
 
@@ -97,7 +98,7 @@ class GitlabToConfigCommand extends Command {
          * see https://github.com/mborne/satis-gitlab/issues/2
          */
         $clientOptions->setUnsafeSsl(true);
-        $client = GitlabClient::createClient(
+        $client = ClientFactory::createClient(
             $clientOptions,
             $logger
         );
