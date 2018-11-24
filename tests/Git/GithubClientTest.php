@@ -17,19 +17,33 @@ use MBO\SatisGitlab\Git\FindOptions;
 class GithubClientTest extends TestCase {
 
     /**
-     * Ensure client can find mborne's projects
+     * @return GithubClient
      */
-    public function testUserRepositories(){
+    protected function createGithubClient(){
+        $token = getenv('SATIS_GITHUB_TOKEN');
+        if ( empty($token) ){
+            $this->markTestSkipped("Missing SATIS_GITHUB_TOKEN for github.com");
+        }
+
         $clientOptions = new ClientOptions();
         $clientOptions
-            ->setUrl('https://api.github.com')
+            ->setUrl('https://github.com')
+            ->setToken($token)
         ;
 
         /* create client */
-        $client = ClientFactory::createClient(
+        return ClientFactory::createClient(
             $clientOptions,
             new NullLogger()
         );
+    }
+
+    /**
+     * Ensure client can find mborne's projects
+     */
+    public function testUserRepositories(){
+        /* create client */
+        $client = $this->createGithubClient();
         $this->assertInstanceOf(GithubClient::class,$client);
 
         /* search projects */
@@ -69,16 +83,8 @@ class GithubClientTest extends TestCase {
      * Ensure client can find mborne's projects with composer.json file
      */
     public function testFilterFile(){
-        $clientOptions = new ClientOptions();
-        $clientOptions
-            ->setUrl('https://api.github.com')
-        ;
-
         /* create client */
-        $client = ClientFactory::createClient(
-            $clientOptions,
-            new NullLogger()
-        );
+        $client = $this->createGithubClient();
         $this->assertInstanceOf(GithubClient::class,$client);
 
         /* search projects */

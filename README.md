@@ -122,8 +122,11 @@ satis-gitlab is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Testing
 
 ```bash
-SATIS_GITLAB_TOKEN=YouGitlabToken make test
+export SATIS_GITLAB_TOKEN=YouGitlabToken
+export SATIS_GITHUB_TOKEN=YouGithubToken
+
+make test
 # or simply
 composer install
-SATIS_GITLAB_TOKEN=YouGitlabToken phpunit
+phpunit
 ```
