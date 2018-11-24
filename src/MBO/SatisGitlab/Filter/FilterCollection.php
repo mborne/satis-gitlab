@@ -53,6 +53,10 @@ class FilterCollection implements ProjectFilterInterface {
                 return false;
             }
         }
+        $this->logger->info(sprintf(
+            "[FilterCollection]keep project %s",
+            $project->getName()
+        ));
         return true;
     }
 }

@@ -96,8 +96,7 @@ Some command line options provide a basic customization options. You may also us
 Experimental support for github allows to perform :
 
 ```bash
-bin/satis-gitlab gitlab-to-config https://api.github.com/orgs/symfony/repos $GITHUB_TOKEN
-bin/satis-gitlab gitlab-to-config https://api.github.com/users/mborne/repos $GITHUB_TOKEN
+bin/satis-gitlab gitlab-to-config https://github.com $GITHUB_TOKEN --orgs=symfony --users=mborne
 bin/satis-gitlab build --skip-errors satis.json web
 ```
 

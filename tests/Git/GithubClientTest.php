@@ -22,7 +22,7 @@ class GithubClientTest extends TestCase {
     public function testUserRepositories(){
         $clientOptions = new ClientOptions();
         $clientOptions
-            ->setUrl('https://api.github.com/users/mborne/repos')
+            ->setUrl('https://api.github.com')
         ;
 
         /* create client */
@@ -34,6 +34,7 @@ class GithubClientTest extends TestCase {
 
         /* search projects */
         $options = new FindOptions();
+        $options->setUsers(array('mborne'));
         $projects = $client->find($options);
         $projectsByName = array();
         foreach ( $projects as $project ){
@@ -70,7 +71,7 @@ class GithubClientTest extends TestCase {
     public function testFilterFile(){
         $clientOptions = new ClientOptions();
         $clientOptions
-            ->setUrl('https://api.github.com/users/mborne/repos')
+            ->setUrl('https://api.github.com')
         ;
 
         /* create client */
@@ -82,6 +83,7 @@ class GithubClientTest extends TestCase {
 
         /* search projects */
         $options = new FindOptions();
+        $options->setUsers(array('mborne'));        
         $projects = $client->find($options);
         $projectsByName = array();
         foreach ( $projects as $project ){

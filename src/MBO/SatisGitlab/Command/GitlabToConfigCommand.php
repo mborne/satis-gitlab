@@ -37,8 +37,6 @@ use MBO\SatisGitlab\Git\FindOptions;
  */
 class GitlabToConfigCommand extends Command {
 
-    const MAX_PAGES = 10000;
-
     protected function configure() {
         $templatePath = realpath( dirname(__FILE__).'/../Resources/default-template.json' );
 
@@ -59,7 +57,7 @@ class GitlabToConfigCommand extends Command {
             /*
              * Project listing options (git level)
              */
-            ->addOption('organizations', 'o', InputOption::VALUE_REQUIRED, 'Find projects according to given organization names')
+            ->addOption('orgs', 'o', InputOption::VALUE_REQUIRED, 'Find projects according to given organization names')
             ->addOption('users', 'u', InputOption::VALUE_REQUIRED, 'Find projects according to given user names')
 
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects (deprecated : see organization and users)', null)
@@ -114,10 +112,16 @@ class GitlabToConfigCommand extends Command {
          * Create repository listing filter (git level)
          */
         $findOptions = new FindOptions();
-        /* organizations option */
-        // TODO
+        /* orgs option */
+        $orgs = $input->getOption('orgs');
+        if ( ! empty($orgs) ){
+            $findOptions->setOrganizations(explode(',',$orgs));
+        }
         /* users option */
-        // TODO
+        $users = $input->getOption('users');
+        if ( ! empty($users) ){
+            $findOptions->setUsers(explode(',',$users));
+        }
 
         /* projectFilter option */
         $projectFilter = $input->getOption('projectFilter');
@@ -213,54 +217,51 @@ class GitlabToConfigCommand extends Command {
         ));
 
         /*
-         * Scan gitlab pages until no more projects are found
+         * Find projects
          */
+        $projects = $client->find($findOptions);
+        
+        /* Generate SATIS configuration */
         $projectCount = 0;
-        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $projects = $client->find($findOptions,$page);
-            if ( empty($projects) ){
-                break;
-            }
-            foreach ($projects as $project) {
-                $projectUrl = $project->getHttpUrl();
+        foreach ($projects as $project) {
+            $projectUrl = $project->getHttpUrl();
 
-                try {
-                    /* look for composer.json in default branch */
-                    $json = $client->getRawFile(
-                        $project, 
-                        'composer.json', 
-                        $project->getDefaultBranch()
-                    );
+            try {
+                /* look for composer.json in default branch */
+                $json = $client->getRawFile(
+                    $project, 
+                    'composer.json', 
+                    $project->getDefaultBranch()
+                );
 
-                    /* retrieve project name from composer.json content */
-                    $composer = json_decode($json, true);
-                    $projectName = isset($composer['name']) ? $composer['name'] : null;
-                    if (is_null($projectName)) {
-                        $logger->error($this->createProjectMessage(
-                            $project,
-                            "name not defined in composer.json"
-                        ));
-                        continue;
-                    }
-
-                    /* add project to satis config */
-                    $projectCount++;
-                    $logger->info($this->createProjectMessage(
+                /* retrieve project name from composer.json content */
+                $composer = json_decode($json, true);
+                $projectName = isset($composer['name']) ? $composer['name'] : null;
+                if (is_null($projectName)) {
+                    $logger->error($this->createProjectMessage(
                         $project,
-                        "$projectName:*"
+                        "name not defined in composer.json"
                     ));
-                    $configBuilder->addRepository(
-                        $projectName, 
-                        $projectUrl,
-                        $clientOptions->isUnsafeSsl()
-                    );
-                } catch (\Exception $e) {
-                    $logger->debug($e->getMessage());
-                    $logger->warning($this->createProjectMessage(
-                        $project,
-                        'composer.json not found'
-                    ));
+                    continue;
                 }
+
+                /* add project to satis config */
+                $projectCount++;
+                $logger->info($this->createProjectMessage(
+                    $project,
+                    "$projectName:*"
+                ));
+                $configBuilder->addRepository(
+                    $projectName, 
+                    $projectUrl,
+                    $clientOptions->isUnsafeSsl()
+                );
+            } catch (\Exception $e) {
+                $logger->debug($e->getMessage());
+                $logger->warning($this->createProjectMessage(
+                    $project,
+                    'composer.json not found'
+                ));
             }
         }
 
@@ -268,7 +269,10 @@ class GitlabToConfigCommand extends Command {
         if ( $projectCount == 0 ){
             $logger->error("No project found!");
         }else{
-            $logger->info(sprintf("Number of project found : %s",$projectCount));
+            $logger->info(sprintf(
+                "Number of project found : %s",
+                $projectCount
+            ));
         }
 
         /*

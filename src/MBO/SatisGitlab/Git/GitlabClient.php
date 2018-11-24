@@ -14,6 +14,7 @@ use Psr\Log\LoggerInterface;
 class GitlabClient implements ClientInterface {
 
     const DEFAULT_PER_PAGE = 50;
+    const MAX_PAGES = 10000;
 
     /**
      * @var GuzzleHttpClient
@@ -41,28 +42,34 @@ class GitlabClient implements ClientInterface {
     /*
      * @{inheritDoc}
      */    
-    public function find(FindOptions $options, $page=1){
+    public function find(FindOptions $options){
         /*
          * refs : 
          * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
          * https://docs.gitlab.com/ee/api/projects.html#search-for-projects-by-name
          */
-        $uri = '/api/v4/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
-        if ( $options->hasSearch() ){
-            $uri .= '&search='.$options->getSearch();
-        }
-        $this->logger->debug('GET '.$uri);
-        $response = $this->httpClient->get($uri);
-        $projects = json_decode( (string)$response->getBody(), true ) ;
-        
         $result = array();
-        foreach ( $projects as $project ){
-            $project = new GitlabProject($project);
-            if ( ! $options->getFilterCollection()->isAccepted($project) ){
-                continue;
+        
+        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
+            $uri = '/api/v4/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
+            if ( $options->hasSearch() ){
+                $uri .= '&search='.$options->getSearch();
             }
-            $result[] = $project;
+            $this->logger->debug('GET '.$uri);
+            $response = $this->httpClient->get($uri);
+            $rawProjects = json_decode( (string)$response->getBody(), true ) ;
+            if ( empty($rawProjects) ){
+                break;
+            }
+            foreach ( $rawProjects as $rawProject ){
+                $project = new GitlabProject($rawProject);
+                if ( ! $options->getFilterCollection()->isAccepted($project) ){
+                    continue;
+                }
+                $result[] = $project;
+            }
         }
+
         return $result;
     }
 

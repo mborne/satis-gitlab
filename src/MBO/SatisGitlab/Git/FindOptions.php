@@ -18,6 +18,20 @@ class FindOptions {
     private $search ;
 
     /**
+     * Filter according to organizations
+     *
+     * @var string[]
+     */
+    private $organizations = array();
+
+    /**
+     * Filter according to user names
+     *
+     * @var string[]
+     */
+    private $users = array();
+
+    /**
      * Filters not appliable throw API usage
      *
      * @var FilterCollection
@@ -86,4 +100,55 @@ class FindOptions {
 
         return $this;
     }
+
+
+    /**
+     * Get filter according to organizations
+     *
+     * @return  string[]
+     */ 
+    public function getOrganizations()
+    {
+        return $this->organizations;
+    }
+
+    /**
+     * Set filter according to organizations
+     *
+     * @param  string[]  $organizations  Filter according to organizations
+     *
+     * @return  self
+     */ 
+    public function setOrganizations(array $organizations)
+    {
+        $this->organizations = $organizations;
+
+        return $this;
+    }
+
+
+    /**
+     * Get filter according to user names
+     *
+     * @return  string[]
+     */ 
+    public function getUsers()
+    {
+        return $this->users;
+    }
+
+    /**
+     * Set filter according to user names
+     *
+     * @param  string[]  $users  Filter according to user names
+     *
+     * @return  self
+     */ 
+    public function setUsers(array $users)
+    {
+        $this->users = $users;
+
+        return $this;
+    }
+
 }
