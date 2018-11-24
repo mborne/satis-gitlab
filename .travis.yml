@@ -13,12 +13,6 @@ cache:
   directories:
     - $HOME/.composer/cache
 
-matrix:
-    include:
-        - php: 7.1
-          env: deps=update
-    fast_finish: true
-
 before_script:
   - composer update --prefer-dist
 
