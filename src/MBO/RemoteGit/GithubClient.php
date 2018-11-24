@@ -2,12 +2,20 @@
 
 namespace MBO\RemoteGit;
 
-use \GuzzleHttp\Client as GuzzleHttpClient;
 use Psr\Log\LoggerInterface;
+use \GuzzleHttp\Client as GuzzleHttpClient;
+
 use MBO\RemoteGit\Filter\ProjectFilterInterface;
 
 /**
  * Client implementation for github
+ * 
+ * See following github docs :
+ * 
+ * https://developer.github.com/v3/repos/#list-organization-repositories
+ * https://developer.github.com/v3/repos/#list-user-repositories
+ * https://developer.github.com/v3/#pagination
+ * 
  */
 class GithubClient implements ClientInterface {
 
@@ -69,29 +77,10 @@ class GithubClient implements ClientInterface {
         $user,
         ProjectFilterInterface $projectFilter
     ){
-        $result = array();
-        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            /* 
-             * https://developer.github.com/v3/repos/#list-user-repositories
-             * https://developer.github.com/v3/#pagination 
-             */
-            $uri = '/users/'.$user.'/repos?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
-
-            $this->logger->debug('GET '.$uri);
-            $response = $this->httpClient->get($uri);
-            $rawProjects = json_decode( (string)$response->getBody(), true ) ;
-            if ( empty($rawProjects) ){
-                break;
-            }
-            foreach ( $rawProjects as $rawProject ){
-                $project = new GithubProject($rawProject);
-                if ( ! $projectFilter->isAccepted($project) ){
-                    continue;
-                }
-                $result[] = $project;
-            }
-        }
-        return $result;
+        return $this->fetchAllPages(
+            '/users/'.$user.'/repos',
+            $projectFilter
+        );
     }
 
     /**
@@ -103,13 +92,25 @@ class GithubClient implements ClientInterface {
         $org,
         ProjectFilterInterface $projectFilter
     ){
+        return $this->fetchAllPages(
+            '/orgs/'.$org.'/repos',
+            $projectFilter
+        );
+    }
+
+    /**
+     * Fetch all pages for a given URI
+     *
+     * @param string $path such as '/orgs/IGNF/repos' or '/users/mborne/repos'
+     * @return ProjectInterface[]
+     */
+    private function fetchAllPages(
+        $path,
+        ProjectFilterInterface $projectFilter
+    ){
         $result = array();
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            /* 
-             * https://developer.github.com/v3/repos/#list-organization-repositories
-             * https://developer.github.com/v3/#pagination 
-             */
-            $uri = '/orgs/'.$org.'/repos?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
+            $uri = $path.'?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
 
             $this->logger->debug('GET '.$uri);
             $response = $this->httpClient->get($uri);

@@ -10,8 +10,11 @@ use MBO\RemoteGit\Filter\ProjectFilterInterface;
 /**
  * Find gitlab projects
  * 
- * TODO add ClientInterface and RepositoryInterface to allow github, gogs and local repositories & co?
+ * See following gitlab docs :
  * 
+ * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
+ * https://docs.gitlab.com/ee/api/projects.html#search-for-projects-by-name
+ *  
  */
 class GitlabClient implements ClientInterface {
 
@@ -45,6 +48,7 @@ class GitlabClient implements ClientInterface {
      * @{inheritDoc}
      */    
     public function find(FindOptions $options){
+        /* find all projects applying optional search */
         if ( empty($options->getUsers()) && empty($options->getOrganizations()) ){
             return $this->findBySearch($options);
         }
@@ -74,25 +78,10 @@ class GitlabClient implements ClientInterface {
         $user,
         ProjectFilterInterface $projectFilter
     ){
-        $result = array();
-        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $uri = '/api/v4/users/'.$user.'/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
-
-            $this->logger->debug('GET '.$uri);
-            $response = $this->httpClient->get($uri);
-            $rawProjects = json_decode( (string)$response->getBody(), true ) ;
-            if ( empty($rawProjects) ){
-                break;
-            }
-            foreach ( $rawProjects as $rawProject ){
-                $project = new GitlabProject($rawProject);
-                if ( ! $projectFilter->isAccepted($project) ){
-                    continue;
-                }
-                $result[] = $project;
-            }
-        }
-        return $result;
+        return $this->fetchAllPages(
+            '/api/v4/users/'.urlencode($user).'/projects',
+            $projectFilter
+        );
     }
 
     /**
@@ -104,10 +93,44 @@ class GitlabClient implements ClientInterface {
         $group,
         ProjectFilterInterface $projectFilter
     ){
-        $result = array();
-        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $uri = '/api/v4/groups/'.urlencode($group).'/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
+        return $this->fetchAllPages(
+            '/api/v4/groups/'.urlencode($group).'/projects',
+            $projectFilter
+        );
+    }
 
+    /**
+     * Find all projects using option search
+     */
+    protected function findBySearch(FindOptions $options){
+        $path = '/api/v4/projects';
+        if ( $options->hasSearch() ){
+            $path .= '?search='.$options->getSearch();
+        }
+        return $this->fetchAllPages(
+            $path,
+            $options->getFilterCollection()
+        );
+    }
+
+
+    /**
+     * Fetch all pages for a given path
+     *
+     * @param string $path "/api/v4/projects?search=something", "/api/v4/projects"
+     * @param ProjectFilterInterface $projectFilter
+     * @return void
+     */
+    private function fetchAllPages(
+        $path,
+        ProjectFilterInterface $projectFilter
+    ){
+        $result = array();
+        if ( strpos($path,'?') === false ){
+            $path .= '?';
+        }
+        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
+            $uri = $path.'page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
             $this->logger->debug('GET '.$uri);
             $response = $this->httpClient->get($uri);
             $rawProjects = json_decode( (string)$response->getBody(), true ) ;
@@ -117,39 +140,6 @@ class GitlabClient implements ClientInterface {
             foreach ( $rawProjects as $rawProject ){
                 $project = new GitlabProject($rawProject);
                 if ( ! $projectFilter->isAccepted($project) ){
-                    continue;
-                }
-                $result[] = $project;
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Find all projects using option search
-     */
-    protected function findBySearch(FindOptions $options){
-        /*
-         * refs : 
-         * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
-         * https://docs.gitlab.com/ee/api/projects.html#search-for-projects-by-name
-         */
-        $result = array();
-        
-        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $uri = '/api/v4/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
-            if ( $options->hasSearch() ){
-                $uri .= '&search='.$options->getSearch();
-            }
-            $this->logger->debug('GET '.$uri);
-            $response = $this->httpClient->get($uri);
-            $rawProjects = json_decode( (string)$response->getBody(), true ) ;
-            if ( empty($rawProjects) ){
-                break;
-            }
-            foreach ( $rawProjects as $rawProject ){
-                $project = new GitlabProject($rawProject);
-                if ( ! $options->getFilterCollection()->isAccepted($project) ){
                     continue;
                 }
                 $result[] = $project;
