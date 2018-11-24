@@ -63,6 +63,26 @@ composer config --global repo.satis.example.org composer https://satis.example.o
 
 (it makes a weaker link between your projects and your SATIS instance(s))
 
+
+## Filter by organization/groups and users
+
+If you rely on gitlab.com, you will probably need to find projects according to groups and users :
+
+```bash
+bin/satis-gitlab gitlab-to-config https://gitlab.com $SATIS_GITLAB_TOKEN -vv --users=mborne --orgs=drutopia
+```
+
+## Experimental support for github
+
+Experimental support for github allows to perform :
+
+```bash
+bin/satis-gitlab gitlab-to-config https://github.com $GITHUB_TOKEN --orgs=symfony --users=mborne
+bin/satis-gitlab build --skip-errors satis.json web
+```
+
+(Note that GITHUB_TOKEN is required to avoid rate request limitation)
+
 ## Advanced usage
 
 ### Mirror dependencies
@@ -91,22 +111,6 @@ Some command line options provide a basic customization options. You may also us
 [default-template.json](src/MBO/SatisGitlab/Resources/default-template.json)
 
 
-## Experimental support for github
-
-Experimental support for github allows to perform :
-
-```bash
-bin/satis-gitlab gitlab-to-config https://github.com $GITHUB_TOKEN --orgs=symfony --users=mborne
-bin/satis-gitlab build --skip-errors satis.json web
-```
-
-Note that :
-
-* GITHUB_TOKEN is required to avoid rate request limitation
-* Config may change (maybe better to support `--orgs=symfony,FriendsOfSymfony --users=mborne`)
-* `src/MBO/SatisGitlab/Git` will probably be moved to a dedicated project `hosted-git-client` (avoid using this classes)
-
-
 ## Requirements
 
 * GITLAB API v4
@@ -114,3 +118,12 @@ Note that :
 ## License
 
 satis-gitlab is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Testing
+
+```bash
+SATIS_GITLAB_TOKEN=YouGitlabToken make test
+# or simply
+composer install
+SATIS_GITLAB_TOKEN=YouGitlabToken phpunit
+```
