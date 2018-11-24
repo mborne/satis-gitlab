@@ -1,10 +1,10 @@
 <?php
 
-namespace MBO\SatisGitlab\Filter;
+namespace MBO\RemoteGit\Filter;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use MBO\SatisGitlab\Git\ProjectInterface;
+use MBO\RemoteGit\ProjectInterface;
 
 /**
  * Compose a list of filter to simplify command line integration

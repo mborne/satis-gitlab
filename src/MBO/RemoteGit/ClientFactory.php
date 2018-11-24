@@ -1,6 +1,6 @@
 <?php
 
-namespace MBO\SatisGitlab\Git;
+namespace MBO\RemoteGit;
 
 use Psr\Log\LoggerInterface;
 use \GuzzleHttp\Client as GuzzleHttpClient;

@@ -1,9 +1,9 @@
 <?php
 
-namespace MBO\SatisGitlab\Filter;
+namespace MBO\RemoteGit\Filter;
 
-use MBO\SatisGitlab\Git\ProjectInterface;
-use MBO\SatisGitlab\Git\ClientInterface as GitClientInterface;
+use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\ClientInterface as GitClientInterface;
 use Psr\Log\LoggerInterface;
 
 /**

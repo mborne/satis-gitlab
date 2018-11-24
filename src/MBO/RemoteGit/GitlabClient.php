@@ -1,11 +1,11 @@
 <?php
 
-namespace MBO\SatisGitlab\Git;
+namespace MBO\RemoteGit;
 
 use \GuzzleHttp\Client as GuzzleHttpClient;
 use Psr\Log\LoggerInterface;
 
-use MBO\SatisGitlab\Filter\ProjectFilterInterface;
+use MBO\RemoteGit\Filter\ProjectFilterInterface;
 
 /**
  * Find gitlab projects

@@ -5,14 +5,14 @@ namespace Tests\SatisGitlab\Git;
 use Tests\SatisGitlab\TestCase;
 
 use GuzzleHttp\Client as GuzzleHttpClient;
-use MBO\SatisGitlab\Git\GitlabClient;
+use MBO\RemoteGit\GitlabClient;
 
 use Psr\Log\NullLogger;
-use MBO\SatisGitlab\Git\ClientOptions;
-use MBO\SatisGitlab\Git\ClientFactory;
-use MBO\SatisGitlab\Git\GithubClient;
-use MBO\SatisGitlab\Git\GithubProject;
-use MBO\SatisGitlab\Git\FindOptions;
+use MBO\RemoteGit\ClientOptions;
+use MBO\RemoteGit\ClientFactory;
+use MBO\RemoteGit\GithubClient;
+use MBO\RemoteGit\GithubProject;
+use MBO\RemoteGit\FindOptions;
 
 class GithubClientTest extends TestCase {
 

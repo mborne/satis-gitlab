@@ -1,8 +1,8 @@
 <?php
 
-namespace MBO\SatisGitlab\Filter;
+namespace MBO\RemoteGit\Filter;
 
-use MBO\SatisGitlab\Git\ProjectInterface;
+use MBO\RemoteGit\ProjectInterface;
 
 /**
  * Ignore project according to a regular expression

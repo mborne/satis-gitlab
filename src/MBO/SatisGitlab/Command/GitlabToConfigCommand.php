@@ -14,19 +14,19 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 
 use MBO\SatisGitlab\Satis\ConfigBuilder;
 use GuzzleHttp\Client as GuzzleHttpClient;
-use MBO\SatisGitlab\Git\GitlabClient;
-use MBO\SatisGitlab\Git\ProjectInterface;
-use MBO\SatisGitlab\Git\ClientOptions;
-use MBO\SatisGitlab\Git\GitlabProject;
-use MBO\SatisGitlab\Filter\FilterCollection;
+use MBO\RemoteGit\GitlabClient;
+use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\ClientOptions;
+use MBO\RemoteGit\GitlabProject;
+use MBO\RemoteGit\Filter\FilterCollection;
 
-use MBO\SatisGitlab\Filter\GitlabNamespaceFilter;
-use MBO\SatisGitlab\Filter\IgnoreRegexpFilter;
-use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
-use MBO\SatisGitlab\Filter\ProjectTypeFilter;
-use MBO\SatisGitlab\Git\ClientFactory;
-use MBO\SatisGitlab\Git\Filter;
-use MBO\SatisGitlab\Git\FindOptions;
+use MBO\RemoteGit\Filter\GitlabNamespaceFilter;
+use MBO\RemoteGit\Filter\IgnoreRegexpFilter;
+use MBO\RemoteGit\Filter\IncludeIfHasFileFilter;
+use MBO\RemoteGit\Filter\ProjectTypeFilter;
+use MBO\RemoteGit\ClientFactory;
+use MBO\RemoteGit\Filter;
+use MBO\RemoteGit\FindOptions;
 
 
 

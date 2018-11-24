@@ -1,11 +1,11 @@
 <?php
 
-namespace MBO\SatisGitlab\Git;
+namespace MBO\RemoteGit;
 
 /**
- * Project implementation for github
+ * Common project properties between different git project host (gitlab, github, etc.)
  */
-class GithubProject implements ProjectInterface {
+class GitlabProject implements ProjectInterface {
 
     protected $rawMetadata;
 
@@ -25,7 +25,7 @@ class GithubProject implements ProjectInterface {
      * @{inheritDoc}
      */
     public function getName(){
-        return $this->rawMetadata['full_name'];
+        return $this->rawMetadata['path_with_namespace'];
     }
 
     /*
@@ -39,7 +39,7 @@ class GithubProject implements ProjectInterface {
      * @{inheritDoc}
      */
     public function getHttpUrl(){
-        return $this->rawMetadata['clone_url'];
+        return $this->rawMetadata['http_url_to_repo'];
     }
 
     /*

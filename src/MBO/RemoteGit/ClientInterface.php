@@ -1,6 +1,6 @@
 <?php
 
-namespace MBO\SatisGitlab\Git;
+namespace MBO\RemoteGit;
 
 /**
  * Lightweight client interface to list hosted git project 

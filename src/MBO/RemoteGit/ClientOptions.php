@@ -1,6 +1,6 @@
 <?php
 
-namespace MBO\SatisGitlab\Git;
+namespace MBO\RemoteGit;
 
 /**
  * Git connection options

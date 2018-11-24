@@ -1,8 +1,8 @@
 <?php
 
-namespace MBO\SatisGitlab\Git;
+namespace MBO\RemoteGit;
 
-use MBO\SatisGitlab\Filter\FilterCollection;
+use MBO\RemoteGit\Filter\FilterCollection;
 
 
 /**
