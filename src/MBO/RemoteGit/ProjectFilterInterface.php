@@ -1,9 +1,6 @@
 <?php
 
-namespace MBO\RemoteGit\Filter;
-
-use MBO\RemoteGit\ProjectInterface;
-
+namespace MBO\RemoteGit;
 
 /**
  * Test if a project should be included in satis config (regexp, )

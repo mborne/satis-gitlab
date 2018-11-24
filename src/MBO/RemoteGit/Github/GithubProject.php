@@ -1,6 +1,8 @@
 <?php
 
-namespace MBO\RemoteGit;
+namespace MBO\RemoteGit\Github;
+
+use MBO\RemoteGit\ProjectInterface;
 
 /**
  * Project implementation for github

@@ -2,14 +2,15 @@
 
 namespace MBO\RemoteGit\Filter;
 
-use MBO\RemoteGit\ProjectInterface;
-use MBO\RemoteGit\ClientInterface as GitClientInterface;
 use Psr\Log\LoggerInterface;
+
+use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\ProjectFilterInterface;
+use MBO\RemoteGit\ClientInterface as GitClientInterface;
+
 
 /**
  * Accept projects if git contains a given file
- * 
- * TODO remove (done at git listing level)
  */
 class IncludeIfHasFileFilter implements ProjectFilterInterface {
 

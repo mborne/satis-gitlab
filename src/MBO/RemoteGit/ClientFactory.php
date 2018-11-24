@@ -5,6 +5,10 @@ namespace MBO\RemoteGit;
 use Psr\Log\LoggerInterface;
 use \GuzzleHttp\Client as GuzzleHttpClient;
 
+use MBO\RemoteGit\Github\GithubClient;
+use MBO\RemoteGit\Gitlab\GitlabClient;
+
+
 /**
  * Helper to create clients
  */

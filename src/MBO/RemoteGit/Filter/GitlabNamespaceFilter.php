@@ -2,9 +2,11 @@
 
 namespace MBO\RemoteGit\Filter;
 
-use MBO\RemoteGit\ProjectInterface;
-use MBO\RemoteGit\ClientInterface as GitClientInterface;
 use Psr\Log\LoggerInterface;
+
+use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\ProjectFilterInterface;
+use MBO\RemoteGit\ClientInterface as GitClientInterface;
 
 /**
  * Filter projects based on GitLab project namespace name or id.

@@ -6,9 +6,9 @@ use MBO\SatisGitlab\Tests\TestCase;
 
 use Psr\Log\NullLogger;
 
-use MBO\RemoteGit\Filter\FilterCollection;
 use MBO\RemoteGit\ProjectInterface;
-use MBO\RemoteGit\Filter\ProjectFilterInterface;
+use MBO\RemoteGit\ProjectFilterInterface;
+use MBO\RemoteGit\Filter\FilterCollection;
 
 /**
  * Test FilterCollection

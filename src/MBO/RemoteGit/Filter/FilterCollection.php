@@ -4,7 +4,9 @@ namespace MBO\RemoteGit\Filter;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+
 use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\ProjectFilterInterface;
 
 /**
  * Compose a list of filter to simplify command line integration

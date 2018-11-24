@@ -32,14 +32,15 @@ class FindOptions {
     private $users = array();
 
     /**
-     * Filters not appliable throw API usage
+     * Additional filter that can't be implemented throw 
+     * project listing API parameters 
      *
-     * @var FilterCollection
+     * @var ProjectFilterInterface
      */
-    private $filterCollection ;
+    private $filter ;
 
     public function __construct(){
-        $this->filterCollection = new FilterCollection();
+        $this->filter = new FilterCollection();
     }
 
     /**
@@ -75,31 +76,6 @@ class FindOptions {
         return $this;
     }
 
-
-
-    /**
-     * Get filters not appliable throw API usage
-     *
-     * @return  FilterCollection
-     */ 
-    public function getFilterCollection()
-    {
-        return $this->filterCollection;
-    }
-
-    /**
-     * Set filters not appliable throw API usage
-     *
-     * @param  FilterCollection  $filterCollection  Filters not appliable throw API usage
-     *
-     * @return  self
-     */ 
-    public function setFilterCollection(FilterCollection $filterCollection)
-    {
-        $this->filterCollection = $filterCollection;
-
-        return $this;
-    }
 
 
     /**
@@ -147,6 +123,31 @@ class FindOptions {
     public function setUsers(array $users)
     {
         $this->users = $users;
+
+        return $this;
+    }
+
+
+    /**
+     * Get project listing API parameters
+     *
+     * @return  ProjectFilterInterface
+     */ 
+    public function getFilter()
+    {
+        return $this->filter;
+    }
+
+    /**
+     * Set project listing API parameters
+     *
+     * @param  ProjectFilterInterface  $filter  project listing API parameters
+     *
+     * @return  self
+     */ 
+    public function setFilter(ProjectFilterInterface $filter)
+    {
+        $this->filter = $filter;
 
         return $this;
     }

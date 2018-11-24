@@ -1,11 +1,15 @@
 <?php
 
-namespace MBO\RemoteGit;
+namespace MBO\RemoteGit\Github;
 
 use Psr\Log\LoggerInterface;
 use \GuzzleHttp\Client as GuzzleHttpClient;
 
-use MBO\RemoteGit\Filter\ProjectFilterInterface;
+use MBO\RemoteGit\ClientInterface;
+use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\FindOptions;
+use MBO\RemoteGit\ProjectFilterInterface;
+
 
 /**
  * Client implementation for github
@@ -56,13 +60,13 @@ class GithubClient implements ClientInterface {
         foreach ( $options->getUsers() as $user ){
             $result = array_merge($result,$this->findByUser(
                 $user,
-                $options->getFilterCollection()
+                $options->getFilter()
             ));
         }
         foreach ( $options->getOrganizations() as $org ){
             $result = array_merge($result,$this->findByOrg(
                 $org,
-                $options->getFilterCollection()
+                $options->getFilter()
             ));
         }
         return $result;

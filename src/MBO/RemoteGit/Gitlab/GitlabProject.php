@@ -1,6 +1,8 @@
 <?php
 
-namespace MBO\RemoteGit;
+namespace MBO\RemoteGit\Gitlab;
+
+use MBO\RemoteGit\ProjectInterface;
 
 /**
  * Common project properties between different git project host (gitlab, github, etc.)

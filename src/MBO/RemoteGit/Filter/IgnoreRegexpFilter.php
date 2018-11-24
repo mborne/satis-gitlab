@@ -3,6 +3,7 @@
 namespace MBO\RemoteGit\Filter;
 
 use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\ProjectFilterInterface;
 
 /**
  * Ignore project according to a regular expression

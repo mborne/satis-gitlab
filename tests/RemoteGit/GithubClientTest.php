@@ -10,9 +10,11 @@ use MBO\RemoteGit\GitlabClient;
 use Psr\Log\NullLogger;
 use MBO\RemoteGit\ClientOptions;
 use MBO\RemoteGit\ClientFactory;
-use MBO\RemoteGit\GithubClient;
-use MBO\RemoteGit\GithubProject;
 use MBO\RemoteGit\FindOptions;
+
+use MBO\RemoteGit\Github\GithubClient;
+use MBO\RemoteGit\Github\GithubProject;
+
 
 class GithubClientTest extends TestCase {
 

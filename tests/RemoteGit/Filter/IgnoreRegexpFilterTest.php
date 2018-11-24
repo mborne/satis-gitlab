@@ -6,8 +6,9 @@ use MBO\SatisGitlab\Tests\TestCase;
 
 use Symfony\Component\Console\Tester\CommandTester;
 
-use MBO\RemoteGit\Filter\IgnoreRegexpFilter;
 use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\Filter\IgnoreRegexpFilter;
+
 
 /**
  * Test IgnoreRegexpFilter

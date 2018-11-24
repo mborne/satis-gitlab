@@ -55,11 +55,10 @@ class GitlabToConfigCommand extends Command {
             ->addArgument('gitlab-token')
 
             /*
-             * Project listing options (git level)
+             * Project listing options (hosted git api level)
              */
             ->addOption('orgs', 'o', InputOption::VALUE_REQUIRED, 'Find projects according to given organization names')
             ->addOption('users', 'u', InputOption::VALUE_REQUIRED, 'Find projects according to given user names')
-
             ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects (deprecated : see organization and users)', null)
 
             /*
@@ -134,7 +133,7 @@ class GitlabToConfigCommand extends Command {
          * Create project filters according to input arguments
          */
         $filterCollection = new FilterCollection($logger);
-        $findOptions->setFilterCollection($filterCollection);
+        $findOptions->setFilter($filterCollection);
 
         /* ignore if 'composer.json' is not available */
         $filterCollection->addFilter(new IncludeIfHasFileFilter(
