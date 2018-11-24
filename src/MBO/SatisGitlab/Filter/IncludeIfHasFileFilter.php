@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Accept projects if git contains a given file
  * 
- * TODO add mock based unit tests
+ * TODO remove (done at git listing level)
  */
 class IncludeIfHasFileFilter implements ProjectFilterInterface {
 

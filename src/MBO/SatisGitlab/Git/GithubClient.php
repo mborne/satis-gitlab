@@ -38,19 +38,21 @@ class GithubClient implements ClientInterface {
     /*
      * @{inheritDoc}
      */    
-    public function find(array $options){
+    public function find(FindOptions $options, $page = 1){
         /* https://developer.github.com/v3/#pagination */
-        $page     = empty($options['page']) ? 1 : $options['page'];
-        $perPage = empty($options['per_page']) ? self::DEFAULT_PER_PAGE : $options['per_page'];
-        $uri = '?page='.$page.'&per_page='.$perPage;
+        $uri = '?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
 
         $this->logger->debug('GET '.$uri);
         $response = $this->httpClient->get($uri);
-        $projects = json_decode( (string)$response->getBody(), true ) ;
+        $rawProjects = json_decode( (string)$response->getBody(), true ) ;
         
         $result = array();
-        foreach ( $projects as $project ){
-            $result[] = new GithubProject($project);
+        foreach ( $rawProjects as $rawProject ){
+            $project = new GithubProject($rawProject);
+            if ( ! $options->getFilterCollection()->isAccepted($project) ){
+                continue;
+            }
+            $result[] = $project;
         }
         return $result;
     }

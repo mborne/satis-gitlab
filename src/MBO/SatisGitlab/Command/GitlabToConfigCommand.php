@@ -25,6 +25,8 @@ use MBO\SatisGitlab\Filter\IgnoreRegexpFilter;
 use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
 use MBO\SatisGitlab\Filter\ProjectTypeFilter;
 use MBO\SatisGitlab\Git\ClientFactory;
+use MBO\SatisGitlab\Git\Filter;
+use MBO\SatisGitlab\Git\FindOptions;
 
 
 
@@ -57,7 +59,10 @@ class GitlabToConfigCommand extends Command {
             /*
              * Project listing options (git level)
              */
-            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
+            ->addOption('organizations', 'o', InputOption::VALUE_REQUIRED, 'Find projects according to given organization names')
+            ->addOption('users', 'u', InputOption::VALUE_REQUIRED, 'Find projects according to given user names')
+
+            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects (deprecated : see organization and users)', null)
 
             /*
              * Project filters
@@ -65,7 +70,7 @@ class GitlabToConfigCommand extends Command {
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
             ->addOption('include-if-has-file',null,InputOption::VALUE_REQUIRED, 'include in satis config if project contains a given file, for ex : ".satisinclude"', null)
             ->addOption('project-type',null,InputOption::VALUE_REQUIRED, 'include in satis config if project is of a specified type, for ex : "library"', null)
-            ->addOption('gitlab-namespace',null,InputOption::VALUE_REQUIRED, 'include in satis config if gitlab project namespace is in the list, for ex : "2,Diaspora"', null)
+            ->addOption('gitlab-namespace',null,InputOption::VALUE_REQUIRED, 'include in satis config if gitlab project namespace is in the list, for ex : "2,Diaspora" (deprecated : see organization and users)', null)
             /* 
              * satis config generation options 
              */
@@ -105,20 +110,36 @@ class GitlabToConfigCommand extends Command {
 
         $outputFile = $input->getOption('output');
 
-        // warning : this one is a "git client filter"
+        /*
+         * Create repository listing filter (git level)
+         */
+        $findOptions = new FindOptions();
+        /* organizations option */
+        // TODO
+        /* users option */
+        // TODO
+
+        /* projectFilter option */
         $projectFilter = $input->getOption('projectFilter');
+        if ( ! empty($projectFilter) ) {
+            $logger->info(sprintf("Project filter : %s...", $projectFilter));
+            $findOptions->setSearch($projectFilter);
+        }
         
         /*
          * Create project filters according to input arguments
          */
         $filterCollection = new FilterCollection($logger);
-        /* ignore option */
-        if ( ! empty($input->getOption('ignore')) ){
-            $filterCollection->addFilter(new IgnoreRegexpFilter(
-                $input->getOption('ignore')
-            ));
-        }
-        /* include-if-has-file option */
+        $findOptions->setFilterCollection($filterCollection);
+
+        /* ignore if 'composer.json' is not available */
+        $filterCollection->addFilter(new IncludeIfHasFileFilter(
+            $client,
+            'composer.json',
+            $logger
+        ));
+
+        /* include-if-has-file option (TODO : project listing level) */
         if ( ! empty($input->getOption('include-if-has-file')) ){
             $filterCollection->addFilter(new IncludeIfHasFileFilter(
                 $client,
@@ -126,6 +147,14 @@ class GitlabToConfigCommand extends Command {
                 $logger
             ));
         }
+
+        /* ignore option */
+        if ( ! empty($input->getOption('ignore')) ){
+            $filterCollection->addFilter(new IgnoreRegexpFilter(
+                $input->getOption('ignore')
+            ));
+        }
+
         /* project-type option */
         if ( ! empty($input->getOption('project-type')) ){
             $filterCollection->addFilter(new ProjectTypeFilter(
@@ -183,30 +212,17 @@ class GitlabToConfigCommand extends Command {
             $clientOptions->getUrl()
         ));
 
-        $findOptions = array();
-        if ( ! empty($projectFilter) ) {
-            $logger->info(sprintf("Project filter : %s...", $projectFilter));
-            $findOptions['search'] = $projectFilter;
-        }
-
         /*
          * Scan gitlab pages until no more projects are found
          */
         $projectCount = 0;
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $findOptions['page'] = $page;
-            $projects = $client->find($findOptions);
+            $projects = $client->find($findOptions,$page);
             if ( empty($projects) ){
                 break;
             }
             foreach ($projects as $project) {
                 $projectUrl = $project->getHttpUrl();
-
-                /* filter according to command line options */
-                if ( ! $filterCollection->isAccepted($project) ){
-                    $logger->info(sprintf("Ignoring project %s", $project->getName()));
-                    continue;
-                }
 
                 try {
                     /* look for composer.json in default branch */

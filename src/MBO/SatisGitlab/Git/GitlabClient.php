@@ -13,7 +13,7 @@ use Psr\Log\LoggerInterface;
  */
 class GitlabClient implements ClientInterface {
 
-    const DEFAULT_PER_PAGE = 100;
+    const DEFAULT_PER_PAGE = 50;
 
     /**
      * @var GuzzleHttpClient
@@ -41,17 +41,15 @@ class GitlabClient implements ClientInterface {
     /*
      * @{inheritDoc}
      */    
-    public function find(array $options){
+    public function find(FindOptions $options, $page=1){
         /*
          * refs : 
          * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
          * https://docs.gitlab.com/ee/api/projects.html#search-for-projects-by-name
          */
-        $page     = empty($options['page']) ? 1 : $options['page'];
-        $perPage = empty($options['per_page']) ? self::DEFAULT_PER_PAGE : $options['per_page'];
-        $uri = '/api/v4/projects?page='.$page.'&per_page='.$perPage;
-        if ( ! empty($options['search']) ){
-            $uri .= '&search='.$options['search'];
+        $uri = '/api/v4/projects?page='.$page.'&per_page='.self::DEFAULT_PER_PAGE;
+        if ( $options->hasSearch() ){
+            $uri .= '&search='.$options->getSearch();
         }
         $this->logger->debug('GET '.$uri);
         $response = $this->httpClient->get($uri);
@@ -59,7 +57,11 @@ class GitlabClient implements ClientInterface {
         
         $result = array();
         foreach ( $projects as $project ){
-            $result[] = new GitlabProject($project);
+            $project = new GitlabProject($project);
+            if ( ! $options->getFilterCollection()->isAccepted($project) ){
+                continue;
+            }
+            $result[] = $project;
         }
         return $result;
     }

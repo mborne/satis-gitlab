@@ -13,7 +13,7 @@ interface ClientInterface {
      * 
      * @return ProjectInterface[]
      */
-    public function find(array $options);
+    public function find(FindOptions $options, $page = 1);
 
     /**
      * Get raw file

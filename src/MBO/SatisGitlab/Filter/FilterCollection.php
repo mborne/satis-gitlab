@@ -3,6 +3,7 @@
 namespace MBO\SatisGitlab\Filter;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use MBO\SatisGitlab\Git\ProjectInterface;
 
 /**
@@ -23,9 +24,9 @@ class FilterCollection implements ProjectFilterInterface {
     /**
      * @param LoggerInterface $logger
      */
-    public function __construct(LoggerInterface $logger){
+    public function __construct(LoggerInterface $logger = null ){
         $this->filters = array();
-        $this->logger = $logger;
+        $this->logger = is_null($logger) ? new NullLogger() : $logger;
     }
 
     /**
@@ -44,7 +45,7 @@ class FilterCollection implements ProjectFilterInterface {
     public function isAccepted(ProjectInterface $project){
         foreach ( $this->filters as $filter ){
             if ( ! $filter->isAccepted($project) ){
-                $this->logger->debug(sprintf(
+                $this->logger->info(sprintf(
                     "[%s]Ignoring project %s",
                     get_class($filter),
                     $project->getName()

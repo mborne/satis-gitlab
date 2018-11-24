@@ -10,6 +10,7 @@ use MBO\SatisGitlab\Git\GitlabClient;
 use Psr\Log\NullLogger;
 use MBO\SatisGitlab\Git\ClientOptions;
 use MBO\SatisGitlab\Git\ClientFactory;
+use MBO\SatisGitlab\Git\FindOptions;
 
 
 class GitlabClientTest extends TestCase {
@@ -39,9 +40,9 @@ class GitlabClientTest extends TestCase {
         $this->assertInstanceOf(GitlabClient::class,$client);
 
         /* search projects */
-        $projects = $client->find(array(
-            'search' => 'sample-composer'
-        ));
+        $findOptions = new FindOptions();
+        $findOptions->setSearch('sample-composer');
+        $projects = $client->find($findOptions);
         $projectsByName = array();
         foreach ( $projects as $project ){
             $projectsByName[$project->getName()] = $project;
