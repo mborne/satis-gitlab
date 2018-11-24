@@ -64,7 +64,7 @@ composer config --global repo.satis.example.org composer https://satis.example.o
 (it makes a weaker link between your projects and your SATIS instance(s))
 
 
-## Filter by organization/groups and users
+## Filter by organization/groups and users
 
 If you rely on gitlab.com, you will probably need to find projects according to groups and users :
 
@@ -126,7 +126,7 @@ export SATIS_GITLAB_TOKEN=YouGitlabToken
 export SATIS_GITHUB_TOKEN=YouGithubToken
 
 make test
-# or simply
+# or simply
 composer install
 phpunit
 ```
