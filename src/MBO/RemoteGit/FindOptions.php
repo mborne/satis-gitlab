@@ -69,7 +69,7 @@ class FindOptions {
      *
      * @return  self
      */ 
-    public function setSearch(string $search)
+    public function setSearch($search)
     {
         $this->search = $search;
 
