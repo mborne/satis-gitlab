@@ -10,15 +10,13 @@ use MBO\RemoteGit\ClientInterface as GitClientInterface;
 
 
 /**
- * Ignore project according to their type
+ * Filter projects ensuring that composer.json is present. Optionally,
+ * a project type can be forced.
  * 
  * @author fantoine
+ * @author mborne
  */
-class ProjectTypeFilter implements ProjectFilterInterface {
-    /**
-     * @var string
-     */
-    protected $projectType;
+class ComposerProjectFilter implements ProjectFilterInterface {
     
     /**
      * @var GitClientInterface
@@ -31,30 +29,59 @@ class ProjectTypeFilter implements ProjectFilterInterface {
     protected $logger;
 
     /**
+     * Filter according to project type
+     * @var string
+     */
+    protected $projectType;
+
+    /**
      * ProjectTypeFilter constructor.
      *
      * @param string $type
      * @param GitClientInterface $gitClient
      * @param LoggerInterface $logger
      */
-    public function __construct($type, GitClientInterface $gitClient, LoggerInterface $logger)
+    public function __construct(GitClientInterface $gitClient, LoggerInterface $logger)
     {
-        assert(!empty($type));        
-        $this->projectType = $type;
         $this->gitClient = $gitClient;
         $this->logger = $logger;
     }
     
     /**
+     * Get filter according to project type
+     *
+     * @return  string
+     */ 
+    public function getProjectType()
+    {
+        return $this->projectType;
+    }
+
+    /**
+     * Set filter according to project type
+     *
+     * @param  string  $projectType  Filter according to project type
+     *
+     * @return  self
+     */ 
+    public function setProjectType(string $projectType)
+    {
+        $this->projectType = $projectType;
+
+        return $this;
+    }
+
+
+    /**
      * {@inheritDoc}
      */
     public function getDescription(){
-        return sprintf(
-            "composer.json should exists and type should be '%s'",
-            $this->projectType
-        );
+        $description = "composer.json should exists";
+        if ( ! empty($this->projectType) ){
+            $description .= sprintf(" and type should be '%s'",$this->projectType);
+        }
+        return $description;
     }
-
 
     /**
      * {@inheritDoc}
@@ -68,7 +95,12 @@ class ProjectTypeFilter implements ProjectFilterInterface {
                 $project->getDefaultBranch()
             );
             $composer = json_decode($json, true);
-            return isset($composer['type']) && strtolower($composer['type']) === strtolower($this->projectType);
+            if ( empty($this->projectType) ){
+                return true;
+            }
+            return isset($composer['type']) 
+                && strtolower($composer['type']) === strtolower($this->projectType)
+            ;
         }catch(\Exception $e){
             $this->logger->debug(sprintf(
                 '%s (branch %s) : file %s not found',
@@ -79,4 +111,7 @@ class ProjectTypeFilter implements ProjectFilterInterface {
             return false;
         }
     }
+
+    
+
 }

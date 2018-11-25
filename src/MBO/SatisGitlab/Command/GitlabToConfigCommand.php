@@ -14,19 +14,18 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 
 use MBO\SatisGitlab\Satis\ConfigBuilder;
 use GuzzleHttp\Client as GuzzleHttpClient;
-use MBO\RemoteGit\GitlabClient;
+
+use MBO\RemoteGit\ClientFactory;
+use MBO\RemoteGit\ClientInterface;
+use MBO\RemoteGit\FindOptions;
 use MBO\RemoteGit\ProjectInterface;
 use MBO\RemoteGit\ClientOptions;
-use MBO\RemoteGit\GitlabProject;
 use MBO\RemoteGit\Filter\FilterCollection;
-
-use MBO\RemoteGit\Filter\GitlabNamespaceFilter;
 use MBO\RemoteGit\Filter\IgnoreRegexpFilter;
-use MBO\RemoteGit\Filter\IncludeIfHasFileFilter;
-use MBO\RemoteGit\Filter\ProjectTypeFilter;
-use MBO\RemoteGit\ClientFactory;
-use MBO\RemoteGit\Filter;
-use MBO\RemoteGit\FindOptions;
+use MBO\RemoteGit\Filter\ComposerProjectFilter;
+use MBO\RemoteGit\Filter\RequiredFileFilter;
+
+use MBO\SatisGitlab\GitFilter\GitlabNamespaceFilter;
 
 /**
  * Generate SATIS configuration scanning gitlab repositories
@@ -141,21 +140,29 @@ class GitlabToConfigCommand extends Command {
         $filterCollection = new FilterCollection($logger);
         $findOptions->setFilter($filterCollection);
 
-        /* ignore if 'composer.json' is not available */
-        $filterCollection->addFilter(new IncludeIfHasFileFilter(
-            $client,
-            'composer.json',
-            $logger
-        ));
+        /*
+         * Filter according to "composer.json" file
+         */
+        $composerFilter = new ComposerProjectFilter($client,$logger);
+        /* project-type option */
+        if ( ! empty($input->getOption('project-type')) ){
+            $composerFilter->setProjectType($input->getOption('project-type'));
+        }
+        $filterCollection->addFilter($composerFilter);
+
 
         /* include-if-has-file option (TODO : project listing level) */
         if ( ! empty($input->getOption('include-if-has-file')) ){
-            $filterCollection->addFilter(new IncludeIfHasFileFilter(
+            $filterCollection->addFilter(new RequiredFileFilter(
                 $client,
                 $input->getOption('include-if-has-file'),
                 $logger
             ));
         }
+
+        /*
+         * Filter according to git project properties
+         */
 
         /* ignore option */
         if ( ! empty($input->getOption('ignore')) ){
@@ -163,16 +170,8 @@ class GitlabToConfigCommand extends Command {
                 $input->getOption('ignore')
             ));
         }
-
-        /* project-type option */
-        if ( ! empty($input->getOption('project-type')) ){
-            $filterCollection->addFilter(new ProjectTypeFilter(
-                $input->getOption('project-type'),
-                $client,
-                $logger
-            ));
-        }
-        /* project-type option */
+        
+        /* gitlab-namespace option */
         if ( ! empty($input->getOption('gitlab-namespace')) ){
             $filterCollection->addFilter(new GitlabNamespaceFilter(
                 $input->getOption('gitlab-namespace')

@@ -34,7 +34,7 @@ interface ProjectInterface {
     public function getHttpUrl();
 
     /**
-     * Get host specific properties
+     * Get hosting service specific properties
      * @return array
      */
     public function getRawMetadata();

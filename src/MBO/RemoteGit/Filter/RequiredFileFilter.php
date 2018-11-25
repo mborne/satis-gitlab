@@ -10,11 +10,11 @@ use MBO\RemoteGit\ClientInterface as GitClientInterface;
 
 
 /**
- * Accept projects if git contains a given file
+ * Accept projects if git repository contains a given file in default branch
  * 
  * @author mborne
  */
-class IncludeIfHasFileFilter implements ProjectFilterInterface {
+class RequiredFileFilter implements ProjectFilterInterface {
 
     /**
      * @var GitClientInterface

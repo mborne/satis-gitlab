@@ -6,7 +6,7 @@ use MBO\RemoteGit\ProjectInterface;
 use MBO\RemoteGit\ProjectFilterInterface;
 
 /**
- * Ignore project according to a regular expression
+ * Ignore project if project.name matches a given regular expression
  * 
  * @author mborne
  */

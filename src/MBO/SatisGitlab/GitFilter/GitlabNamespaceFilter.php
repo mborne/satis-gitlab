@@ -1,6 +1,6 @@
 <?php
 
-namespace MBO\RemoteGit\Filter;
+namespace MBO\SatisGitlab\GitFilter;
 
 use Psr\Log\LoggerInterface;
 
