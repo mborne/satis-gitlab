@@ -123,7 +123,7 @@ Some command line options provide a basic customization options. You may also us
 
 PHP 7.2 version is recommanded as it is the current LTS with the longest support (see [PHP - Supported Versions](http://php.net/supported-versions.php))
 
-Meanwhile [7.1, 7.2 and 7.3 are tested throw Travis CI](https://travis-ci.org/mborne/satis-gitlab)
+Meanwhile [5.6, 7.1, 7.2 and 7.3 are tested throw Travis CI](https://travis-ci.org/mborne/satis-gitlab)
 
 
 ## Testing

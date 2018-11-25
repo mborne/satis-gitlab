@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "07645bb24202490ad5671d5d118cbf55",
+    "content-hash": "b80856e2fc655174714db92728bd4227",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -621,6 +621,46 @@
                 "schema"
             ],
             "time": "2018-02-14T22:26:30+00:00"
+        },
+        {
+            "name": "mborne/remote-git",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mborne/remote-git.git",
+                "reference": "4152921df81e1db53570234a23454348e58c95fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mborne/remote-git/zipball/4152921df81e1db53570234a23454348e58c95fd",
+                "reference": "4152921df81e1db53570234a23454348e58c95fd",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "~6.0",
+                "psr/log": "~1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5|^7"
+            },
+            "bin": [
+                "bin/satis-gitlab"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Mickaël BORNE",
+                    "email": "mborne@users.noreply.github.com"
+                }
+            ],
+            "description": "A lightweight PHP client providing a consistent way to find hosted and self-hosted git repositories (github, gitlab,...)",
+            "time": "2018-11-25T17:57:56+00:00"
         },
         {
             "name": "psr/http-message",

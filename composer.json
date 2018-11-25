@@ -11,15 +11,14 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "MBO\\SatisGitlab\\Tests\\": "tests/SatisGitlab",
-            "MBO\\RemoteGit\\Tests\\": "tests/RemoteGit"
+            "MBO\\SatisGitlab\\Tests\\": "tests"
         }
     },
     "bin": [
         "bin/satis-gitlab"
     ],
     "require": {
-        "guzzlehttp/guzzle": "~6.0",
+        "mborne/remote-git": "~0.1",
         "symfony/console": "^3.4",
         "composer/satis": "^1.0"
     },
