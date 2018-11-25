@@ -5,7 +5,6 @@ dist: trusty
 
 # Active PHP versions
 php:
-  - 5.6
   - 7.1
   - 7.2
   - 7.3
