@@ -14,27 +14,30 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 
 use MBO\SatisGitlab\Satis\ConfigBuilder;
 use GuzzleHttp\Client as GuzzleHttpClient;
-use MBO\SatisGitlab\Git\GitlabClient;
-use MBO\SatisGitlab\Git\ProjectInterface;
-use MBO\SatisGitlab\Git\ClientOptions;
-use MBO\SatisGitlab\Git\GitlabProject;
-use MBO\SatisGitlab\Filter\FilterCollection;
 
-use MBO\SatisGitlab\Filter\GitlabNamespaceFilter;
-use MBO\SatisGitlab\Filter\IgnoreRegexpFilter;
-use MBO\SatisGitlab\Filter\IncludeIfHasFileFilter;
-use MBO\SatisGitlab\Filter\ProjectTypeFilter;
+use MBO\RemoteGit\ClientFactory;
+use MBO\RemoteGit\ClientInterface;
+use MBO\RemoteGit\FindOptions;
+use MBO\RemoteGit\ProjectInterface;
+use MBO\RemoteGit\ClientOptions;
+use MBO\RemoteGit\Filter\FilterCollection;
+use MBO\RemoteGit\Filter\IgnoreRegexpFilter;
+use MBO\RemoteGit\Filter\ComposerProjectFilter;
+use MBO\RemoteGit\Filter\RequiredFileFilter;
 
-
+use MBO\SatisGitlab\GitFilter\GitlabNamespaceFilter;
 
 /**
  * Generate SATIS configuration scanning gitlab repositories
  *
- * @author MBorne
+ * @author mborne
+ * @author roygoldman
+ * @author ochorocho
+ * @author fantoine
+ * @author SilverFire
+ * @author kaystrobach
  */
 class GitlabToConfigCommand extends Command {
-
-    const MAX_PAGES = 10000;
 
     protected function configure() {
         $templatePath = realpath( dirname(__FILE__).'/../Resources/default-template.json' );
@@ -54,9 +57,11 @@ class GitlabToConfigCommand extends Command {
             ->addArgument('gitlab-token')
 
             /*
-             * Project listing options (git level)
+             * Project listing options (hosted git api level)
              */
-            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects', null)
+            ->addOption('orgs', 'o', InputOption::VALUE_REQUIRED, 'Find projects according to given organization names')
+            ->addOption('users', 'u', InputOption::VALUE_REQUIRED, 'Find projects according to given user names')
+            ->addOption('projectFilter', 'p', InputOption::VALUE_OPTIONAL, 'filter for projects (deprecated : see organization and users)', null)
 
             /*
              * Project filters
@@ -64,7 +69,7 @@ class GitlabToConfigCommand extends Command {
             ->addOption('ignore', 'i', InputOption::VALUE_REQUIRED, 'ignore project according to a regexp, for ex : "(^phpstorm|^typo3\/library)"', null)
             ->addOption('include-if-has-file',null,InputOption::VALUE_REQUIRED, 'include in satis config if project contains a given file, for ex : ".satisinclude"', null)
             ->addOption('project-type',null,InputOption::VALUE_REQUIRED, 'include in satis config if project is of a specified type, for ex : "library"', null)
-            ->addOption('gitlab-namespace',null,InputOption::VALUE_REQUIRED, 'include in satis config if gitlab project namespace is in the list, for ex : "2,Diaspora"', null)
+            ->addOption('gitlab-namespace',null,InputOption::VALUE_REQUIRED, 'include in satis config if gitlab project namespace is in the list, for ex : "2,Diaspora" (deprecated : see organization and users)', null)
             /* 
              * satis config generation options 
              */
@@ -83,6 +88,9 @@ class GitlabToConfigCommand extends Command {
         ;
     }
 
+    /**
+     * @{inheritDoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output) {
         $logger = $this->createLogger($output);
 
@@ -97,43 +105,73 @@ class GitlabToConfigCommand extends Command {
          * see https://github.com/mborne/satis-gitlab/issues/2
          */
         $clientOptions->setUnsafeSsl(true);
-        $client = GitlabClient::createClient(
+        $client = ClientFactory::createClient(
             $clientOptions,
             $logger
         );
 
         $outputFile = $input->getOption('output');
 
-        // warning : this one is a "git client filter"
+        /*
+         * Create repository listing filter (git level)
+         */
+        $findOptions = new FindOptions();
+        /* orgs option */
+        $orgs = $input->getOption('orgs');
+        if ( ! empty($orgs) ){
+            $findOptions->setOrganizations(explode(',',$orgs));
+        }
+        /* users option */
+        $users = $input->getOption('users');
+        if ( ! empty($users) ){
+            $findOptions->setUsers(explode(',',$users));
+        }
+
+        /* projectFilter option */
         $projectFilter = $input->getOption('projectFilter');
+        if ( ! empty($projectFilter) ) {
+            $logger->info(sprintf("Project filter : %s...", $projectFilter));
+            $findOptions->setSearch($projectFilter);
+        }
         
         /*
          * Create project filters according to input arguments
          */
         $filterCollection = new FilterCollection($logger);
+        $findOptions->setFilter($filterCollection);
+
+        /*
+         * Filter according to "composer.json" file
+         */
+        $composerFilter = new ComposerProjectFilter($client,$logger);
+        /* project-type option */
+        if ( ! empty($input->getOption('project-type')) ){
+            $composerFilter->setProjectType($input->getOption('project-type'));
+        }
+        $filterCollection->addFilter($composerFilter);
+
+
+        /* include-if-has-file option (TODO : project listing level) */
+        if ( ! empty($input->getOption('include-if-has-file')) ){
+            $filterCollection->addFilter(new RequiredFileFilter(
+                $client,
+                $input->getOption('include-if-has-file'),
+                $logger
+            ));
+        }
+
+        /*
+         * Filter according to git project properties
+         */
+
         /* ignore option */
         if ( ! empty($input->getOption('ignore')) ){
             $filterCollection->addFilter(new IgnoreRegexpFilter(
                 $input->getOption('ignore')
             ));
         }
-        /* include-if-has-file option */
-        if ( ! empty($input->getOption('include-if-has-file')) ){
-            $filterCollection->addFilter(new IncludeIfHasFileFilter(
-                $client,
-                $input->getOption('include-if-has-file'),
-                $logger
-            ));
-        }
-        /* project-type option */
-        if ( ! empty($input->getOption('project-type')) ){
-            $filterCollection->addFilter(new ProjectTypeFilter(
-                $input->getOption('project-type'),
-                $client,
-                $logger
-            ));
-        }
-        /* project-type option */
+        
+        /* gitlab-namespace option */
         if ( ! empty($input->getOption('gitlab-namespace')) ){
             $filterCollection->addFilter(new GitlabNamespaceFilter(
                 $input->getOption('gitlab-namespace')
@@ -182,68 +220,52 @@ class GitlabToConfigCommand extends Command {
             $clientOptions->getUrl()
         ));
 
-        $findOptions = array();
-        if ( ! empty($projectFilter) ) {
-            $logger->info(sprintf("Project filter : %s...", $projectFilter));
-            $findOptions['search'] = $projectFilter;
-        }
-
         /*
-         * Scan gitlab pages until no more projects are found
+         * Find projects
          */
+        $projects = $client->find($findOptions);
+        
+        /* Generate SATIS configuration */
         $projectCount = 0;
-        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
-            $findOptions['page'] = $page;
-            $projects = $client->find($findOptions);
-            if ( empty($projects) ){
-                break;
-            }
-            foreach ($projects as $project) {
-                $projectUrl = $project->getHttpUrl();
+        foreach ($projects as $project) {
+            $projectUrl = $project->getHttpUrl();
 
-                /* filter according to command line options */
-                if ( ! $filterCollection->isAccepted($project) ){
-                    $logger->info(sprintf("Ignoring project %s", $project->getName()));
+            try {
+                /* look for composer.json in default branch */
+                $json = $client->getRawFile(
+                    $project, 
+                    'composer.json', 
+                    $project->getDefaultBranch()
+                );
+
+                /* retrieve project name from composer.json content */
+                $composer = json_decode($json, true);
+                $projectName = isset($composer['name']) ? $composer['name'] : null;
+                if (is_null($projectName)) {
+                    $logger->error($this->createProjectMessage(
+                        $project,
+                        "name not defined in composer.json"
+                    ));
                     continue;
                 }
 
-                try {
-                    /* look for composer.json in default branch */
-                    $json = $client->getRawFile(
-                        $project, 
-                        'composer.json', 
-                        $project->getDefaultBranch()
-                    );
-
-                    /* retrieve project name from composer.json content */
-                    $composer = json_decode($json, true);
-                    $projectName = isset($composer['name']) ? $composer['name'] : null;
-                    if (is_null($projectName)) {
-                        $logger->error($this->createProjectMessage(
-                            $project,
-                            "name not defined in composer.json"
-                        ));
-                        continue;
-                    }
-
-                    /* add project to satis config */
-                    $projectCount++;
-                    $logger->info($this->createProjectMessage(
-                        $project,
-                        "$projectName:*"
-                    ));
-                    $configBuilder->addRepository(
-                        $projectName, 
-                        $projectUrl,
-                        $clientOptions->isUnsafeSsl()
-                    );
-                } catch (\Exception $e) {
-                    $logger->debug($e->getMessage());
-                    $logger->warning($this->createProjectMessage(
-                        $project,
-                        'composer.json not found'
-                    ));
-                }
+                /* add project to satis config */
+                $projectCount++;
+                $logger->info($this->createProjectMessage(
+                    $project,
+                    "$projectName:*"
+                ));
+                $configBuilder->addRepository(
+                    $projectName, 
+                    $projectUrl,
+                    $clientOptions->isUnsafeSsl()
+                );
+            } catch (\Exception $e) {
+                $logger->debug($e->getMessage());
+                $logger->warning($this->createProjectMessage(
+                    $project,
+                    'composer.json not found'
+                ));
             }
         }
 
@@ -251,7 +273,10 @@ class GitlabToConfigCommand extends Command {
         if ( $projectCount == 0 ){
             $logger->error("No project found!");
         }else{
-            $logger->info(sprintf("Number of project found : %s",$projectCount));
+            $logger->info(sprintf(
+                "Number of project found : %s",
+                $projectCount
+            ));
         }
 
         /*

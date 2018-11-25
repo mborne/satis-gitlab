@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\SatisGitlab;
+namespace MBO\SatisGitlab\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 
-use MBO\SatisGitlab\Git\ProjectInterface;
+use MBO\RemoteGit\ProjectInterface;
 
 class TestCase extends BaseTestCase {
 

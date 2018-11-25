@@ -4,6 +4,8 @@ namespace MBO\SatisGitlab\Satis;
 
 /**
  * Incremental satis configuration builder
+ * 
+ * @author mborne
  */
 class ConfigBuilder {
 
