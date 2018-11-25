@@ -13,8 +13,12 @@ It also provides a way to mirror PHP dependencies to allow offline builds.
 ```bash
 git clone https://github.com/mborne/satis-gitlab
 cd satis-gitlab
+# PHP 7.x
 composer install
+# PHP 5.6 (downgrading versions refered in composer.lock is required)
+composer update
 ```
+
 
 ### 2) Generate SATIS configuration
 
