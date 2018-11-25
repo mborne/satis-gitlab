@@ -7,6 +7,8 @@ use MBO\RemoteGit\ProjectFilterInterface;
 
 /**
  * Ignore project according to a regular expression
+ * 
+ * @author mborne
  */
 class IgnoreRegexpFilter implements ProjectFilterInterface {
 

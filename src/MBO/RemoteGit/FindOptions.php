@@ -7,6 +7,8 @@ use MBO\RemoteGit\Filter\FilterCollection;
 
 /**
  * Find options to filter project listing
+ * 
+ * @author mborne
  */
 class FindOptions {
 

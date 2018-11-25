@@ -6,6 +6,8 @@ use MBO\RemoteGit\ProjectInterface;
 
 /**
  * Project implementation for github
+ * 
+ * @author mborne
  */
 class GithubProject implements ProjectInterface {
 

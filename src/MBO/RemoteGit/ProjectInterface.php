@@ -4,6 +4,8 @@ namespace MBO\RemoteGit;
 
 /**
  * Common project properties between different git project host (gitlab, github, etc.)
+ * 
+ * @author mborne
  */
 interface ProjectInterface {
 

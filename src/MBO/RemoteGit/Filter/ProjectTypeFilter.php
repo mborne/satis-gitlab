@@ -11,6 +11,8 @@ use MBO\RemoteGit\ClientInterface as GitClientInterface;
 
 /**
  * Ignore project according to their type
+ * 
+ * @author fantoine
  */
 class ProjectTypeFilter implements ProjectFilterInterface {
     /**

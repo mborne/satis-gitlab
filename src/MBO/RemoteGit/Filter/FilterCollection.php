@@ -10,6 +10,8 @@ use MBO\RemoteGit\ProjectFilterInterface;
 
 /**
  * Compose a list of filter to simplify command line integration
+ * 
+ * @author mborne
  */
 class FilterCollection implements ProjectFilterInterface {
     

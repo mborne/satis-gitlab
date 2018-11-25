@@ -10,6 +10,8 @@ use MBO\RemoteGit\ClientInterface as GitClientInterface;
 
 /**
  * Filter projects based on GitLab project namespace name or id.
+ * 
+ * @author roygoldman
  */
 class GitlabNamespaceFilter implements ProjectFilterInterface {
     /**

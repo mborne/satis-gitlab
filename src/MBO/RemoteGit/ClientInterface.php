@@ -5,6 +5,8 @@ namespace MBO\RemoteGit;
 /**
  * Lightweight client interface to list hosted git project 
  * and access files such as composer.json
+ * 
+ * @author mborne
  */
 interface ClientInterface {
 

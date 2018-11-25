@@ -4,6 +4,8 @@ namespace MBO\RemoteGit;
 
 /**
  * Git connection options
+ * 
+ * @author mborne
  */
 class ClientOptions {
 

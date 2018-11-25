@@ -4,6 +4,8 @@ namespace MBO\RemoteGit;
 
 /**
  * Test if a project should be included in satis config (regexp, )
+ * 
+ * @author mborne
  */
 interface ProjectFilterInterface {
 

@@ -10,7 +10,9 @@ use MBO\RemoteGit\Gitlab\GitlabClient;
 
 
 /**
- * Helper to create clients
+ * Helper to create clients according to URL
+ * 
+ * @author mborne
  */
 class ClientFactory {
 

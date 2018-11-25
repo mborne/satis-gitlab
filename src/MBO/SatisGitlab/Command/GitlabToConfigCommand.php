@@ -28,12 +28,15 @@ use MBO\RemoteGit\ClientFactory;
 use MBO\RemoteGit\Filter;
 use MBO\RemoteGit\FindOptions;
 
-
-
 /**
  * Generate SATIS configuration scanning gitlab repositories
  *
- * @author MBorne
+ * @author mborne
+ * @author roygoldman
+ * @author ochorocho
+ * @author fantoine
+ * @author SilverFire
+ * @author kaystrobach
  */
 class GitlabToConfigCommand extends Command {
 
@@ -86,6 +89,9 @@ class GitlabToConfigCommand extends Command {
         ;
     }
 
+    /**
+     * @{inheritDoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output) {
         $logger = $this->createLogger($output);
 

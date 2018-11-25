@@ -20,6 +20,8 @@ use MBO\RemoteGit\ProjectFilterInterface;
  * https://developer.github.com/v3/repos/#list-user-repositories
  * https://developer.github.com/v3/#pagination
  * 
+ * @author mborne
+ * 
  */
 class GithubClient implements ClientInterface {
 

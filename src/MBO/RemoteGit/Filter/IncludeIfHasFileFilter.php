@@ -11,6 +11,8 @@ use MBO\RemoteGit\ClientInterface as GitClientInterface;
 
 /**
  * Accept projects if git contains a given file
+ * 
+ * @author mborne
  */
 class IncludeIfHasFileFilter implements ProjectFilterInterface {
 

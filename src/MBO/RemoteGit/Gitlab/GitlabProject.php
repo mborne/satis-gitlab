@@ -6,6 +6,8 @@ use MBO\RemoteGit\ProjectInterface;
 
 /**
  * Common project properties between different git project host (gitlab, github, etc.)
+ * 
+ * @author mborne
  */
 class GitlabProject implements ProjectInterface {
 

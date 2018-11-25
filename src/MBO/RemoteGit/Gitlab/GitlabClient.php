@@ -18,6 +18,8 @@ use MBO\RemoteGit\ProjectFilterInterface;
  * 
  * https://docs.gitlab.com/ee/api/projects.html#list-all-projects
  * https://docs.gitlab.com/ee/api/projects.html#search-for-projects-by-name
+ * 
+ * @author mborne
  *  
  */
 class GitlabClient implements ClientInterface {
@@ -50,7 +52,7 @@ class GitlabClient implements ClientInterface {
 
     /*
      * @{inheritDoc}
-     */    
+     */
     public function find(FindOptions $options){
         /* find all projects applying optional search */
         if ( empty($options->getUsers()) && empty($options->getOrganizations()) ){
