@@ -55,6 +55,7 @@ class GitlabToConfigCommand extends Command {
              */
             ->addArgument('gitlab-url', InputArgument::REQUIRED)
             ->addArgument('gitlab-token')
+            ->addOption('unsafe-ssl', null, InputOption::VALUE_NONE, 'allows to ignore SSL problems')
 
             /*
              * Project listing options (hosted git api level)
@@ -102,11 +103,11 @@ class GitlabToConfigCommand extends Command {
         $clientOptions = new ClientOptions();
         $clientOptions->setUrl($input->getArgument('gitlab-url'));
         $clientOptions->setToken($input->getArgument('gitlab-token'));
-        /*
-         * TODO add option 
-         * see https://github.com/mborne/satis-gitlab/issues/2
-         */
-        $clientOptions->setUnsafeSsl(true);
+        
+        if ( $input->getOption('unsafe-ssl') ){
+            $clientOptions->setUnsafeSsl(true);
+        }
+
         $client = ClientFactory::createClient(
             $clientOptions,
             $logger
