@@ -12,9 +12,23 @@ class ConfigBuilderTest extends TestCase {
     public function testDefaultConstructor(){
         $configBuilder = new ConfigBuilder();
         $result = $configBuilder->getConfig();
+
+        // name
+        $this->assertArrayHasKey('name',$result);
+        $this->assertEquals('mborne/satis-gitlab-repository',$result['name']);
+
         // homepage
         $this->assertArrayHasKey('homepage',$result);
-        $this->assertEquals('http://localhost/satis/',$result['homepage']);
+        $this->assertEquals('https://satis.dev.localhost/',$result['homepage']);
+    }
+
+    public function testSetName(){
+        $configBuilder = new ConfigBuilder();
+        $configBuilder->setName('acme/satis-repository');
+        $result = $configBuilder->getConfig();
+        // homepage
+        $this->assertArrayHasKey('name',$result);
+        $this->assertEquals('acme/satis-repository',$result['name']);
     }
 
     public function testSetHomepage(){

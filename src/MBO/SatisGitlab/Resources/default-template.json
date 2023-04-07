@@ -1,6 +1,6 @@
 {
-    "name": "SATIS repository",
-    "homepage": "http://localhost/satis/",
+    "name": "mborne/satis-gitlab-repository",
+    "homepage": "https://satis.dev.localhost/",
     "repositories": [
         {
             "type": "composer",

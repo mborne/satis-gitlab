@@ -76,7 +76,8 @@ class GitlabToConfigCommand extends Command {
             // deep customization : template file extended with default configuration
             ->addOption('template', null, InputOption::VALUE_REQUIRED, 'template satis.json extended with gitlab repositories', $templatePath)
 
-            // simple customization
+            // simple customization on default-template.json
+            ->addOption('name', null, InputOption::VALUE_REQUIRED, 'satis repository name')
             ->addOption('homepage', null, InputOption::VALUE_REQUIRED, 'satis homepage')
             ->addOption('archive', null, InputOption::VALUE_NONE, 'enable archive mirroring')
             ->addOption('no-token', null, InputOption::VALUE_NONE, 'disable token writing in output configuration')
@@ -189,6 +190,11 @@ class GitlabToConfigCommand extends Command {
         /*
          * customize according to command line options
          */
+        $name = $input->getOption('name');
+        if ( ! empty($name) ){
+            $configBuilder->setName($name);
+        }
+
         $homepage = $input->getOption('homepage');
         if ( ! empty($homepage) ){
             $configBuilder->setHomepage($homepage);
