@@ -14,11 +14,12 @@ class GitlabToConfigCommandTest extends TestCase {
 
     protected $outputFile;
 
-    protected function setUp(){
+    protected function setUp(): void
+    {
         $this->outputFile = tempnam(sys_get_temp_dir(),'satis-config');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void 
     {
         if ( file_exists($this->outputFile) ){ 
             unlink($this->outputFile);
@@ -42,7 +43,7 @@ class GitlabToConfigCommandTest extends TestCase {
         ));
 
         $output = $commandTester->getDisplay();
-        $this->assertContains(
+        $this->assertStringContainsString(
             'mborne/sample-composer',
             $output
         );

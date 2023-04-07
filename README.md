@@ -1,10 +1,15 @@
-# mbo/satis-gitlab
+# mborne/satis-gitlab
 
-[![Build Status](https://travis-ci.org/mborne/satis-gitlab.svg)](https://travis-ci.org/mborne/satis-gitlab)
+[![CI](https://github.com/mborne/satis-gitlab/actions/workflows/ci.yml/badge.svg)](https://github.com/mborne/satis-gitlab/actions/workflows/ci.yml)
 
-[PHP composer/satis](https://github.com/composer/satis) application extended with the hability to automate SATIS configuration according to GITLAB projects containing a `composer.json` file.
+[PHP composer/satis](https://github.com/composer/satis) extended with the ability to generate SATIS configuration according to CVS projects containing a `composer.json` file.
 
 It also provides a way to mirror PHP dependencies to allow offline builds.
+
+## Requirements
+
+* PHP 7.4 or 8.x
+* GitLab API v4 / GitHub API / Gogs API / Gitea API
 
 ## Usage
 
@@ -13,9 +18,9 @@ It also provides a way to mirror PHP dependencies to allow offline builds.
 ```bash
 git clone https://github.com/mborne/satis-gitlab
 cd satis-gitlab
-# PHP 7.x
+# PHP 7.x
 composer install
-# PHP 5.6 (downgrading versions refered in composer.lock is required)
+# PHP 5.6 (downgrading versions refered in composer.lock is required)
 composer update
 ```
 
@@ -119,13 +124,6 @@ Some command line options provide a basic customization options. You may also us
 [default-template.json](src/MBO/SatisGitlab/Resources/default-template.json)
 
 
-## Supported PHP versions
-
-PHP 7.2 version is recommanded as it is the current LTS with the longest support (see [PHP - Supported Versions](http://php.net/supported-versions.php))
-
-Meanwhile [5.6, 7.1, 7.2 and 7.3 are tested throw Travis CI](https://travis-ci.org/mborne/satis-gitlab)
-
-
 ## Testing
 
 ```bash
@@ -138,11 +136,8 @@ make test
 Note that an HTML coverage report is generated to `output/coverage/index.html`
 
 
-## Requirements
-
-* GITLAB API v4
-
 ## License
 
-satis-gitlab is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+[MIT](LICENSE).
+
 

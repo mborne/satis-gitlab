@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        php-version: [7.4]
+        php-version: [7.4,8.1]
 
     runs-on: ubuntu-latest
 
@@ -29,8 +29,8 @@ jobs:
         #coverage: xdebug
         tools: php-cs-fixer, phpunit
 
-    #- name: Validate composer.json
-    #  run: composer validate --strict
+    - name: Validate composer.json
+      run: composer validate --strict
 
     - name: Cache Composer packages
       id: composer-cache
@@ -42,7 +42,7 @@ jobs:
           ${{ runner.os }}-php-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: composer update --prefer-dist --no-progress
 
     - name: Run tests
       run: make test
@@ -50,9 +50,9 @@ jobs:
         SATIS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SATIS_GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
 
-#    - name: Upload coverage results to coveralls.io
-#      if: github.ref == 'refs/heads/master' && matrix.php-version == '8.1'
-#      run: |
-#        vendor/bin/php-coveralls --coverage_clover=output/clover.xml --json_path=output/coveralls.json -v
-#      env:
-#        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload coverage results to coveralls.io
+      if: github.ref == 'refs/heads/master' && matrix.php-version == '8.1'
+      run: |
+        vendor/bin/php-coveralls --coverage_clover=output/clover.xml --json_path=output/coveralls.json -v
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}

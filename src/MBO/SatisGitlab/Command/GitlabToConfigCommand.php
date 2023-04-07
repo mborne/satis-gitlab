@@ -91,7 +91,8 @@ class GitlabToConfigCommand extends Command {
     /**
      * @{inheritDoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output) {
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
         $logger = $this->createLogger($output);
 
         /*
@@ -286,6 +287,8 @@ class GitlabToConfigCommand extends Command {
         $logger->info("Generate satis configuration file : $outputFile");
         $result = json_encode($satis, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         file_put_contents($outputFile, $result);
+
+        return static::SUCCESS;
     }
 
 
