@@ -1,13 +1,18 @@
 {
-    "name": "mbo/satis-gitlab",
+    "name": "mborne/satis-gitlab",
+    "type": "project",
+    "description": "composer/satis extended with the ability to generate SATIS configuration",
     "authors": [
         {
             "name": "Mickaël BORNE",
             "email": "mborne@users.noreply.github.com"
         }
     ],
+    "license": "MIT",
     "autoload": {
-        "psr-4": {"": "src/"}
+        "psr-4": {
+            "MBO\\SatisGitlab\\": "src/MBO/SatisGitlab"
+        }
     },
     "autoload-dev": {
         "psr-4": {
