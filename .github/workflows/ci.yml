@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        php-version: [5.6,7.4,8.1]
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: "Setup PHP ${{ matrix.php-version }}"
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        coverage: xdebug2
+        #coverage: xdebug
+        tools: php-cs-fixer, phpunit
+
+    - name: Validate composer.json
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run tests
+      run: make test
+      env:
+        SATIS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SATIS_GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+
+#    - name: Upload coverage results to coveralls.io
+#      if: github.ref == 'refs/heads/master' && matrix.php-version == '8.1'
+#      run: |
+#        vendor/bin/php-coveralls --coverage_clover=output/clover.xml --json_path=output/coveralls.json -v
+#      env:
+#        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
