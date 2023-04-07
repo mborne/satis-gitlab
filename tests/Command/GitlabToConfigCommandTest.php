@@ -43,7 +43,7 @@ class GitlabToConfigCommandTest extends TestCase {
         ));
 
         $output = $commandTester->getDisplay();
-        $this->assertContains(
+        $this->assertStringContainsString(
             'mborne/sample-composer',
             $output
         );
