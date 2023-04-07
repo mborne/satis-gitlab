@@ -8,14 +8,7 @@
         },
         {
             "type": "vcs",
-            "url": "https:\/\/gitlab.com\/mborne\/sample-composer.git",
-            "options": {
-                "ssl": {
-                    "verify_peer": false,
-                    "verify_peer_name": false,
-                    "allow_self_signed": true
-                }
-            }
+            "url": "https:\/\/gitlab.com\/mborne\/sample-composer.git"
         }
     ],
     "require": {
