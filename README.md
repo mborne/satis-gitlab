@@ -1,6 +1,6 @@
 # mborne/satis-gitlab
 
-[![CI](https://github.com/mborne/satis-gitlab/actions/workflows/ci.yml/badge.svg)](https://github.com/mborne/satis-gitlab/actions/workflows/ci.yml)
+[![CI](https://github.com/mborne/satis-gitlab/actions/workflows/ci.yml/badge.svg)](https://github.com/mborne/satis-gitlab/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/mborne/satis-gitlab/badge.svg?branch=master)](https://coveralls.io/github/mborne/satis-gitlab?branch=master)
 
 [PHP composer/satis](https://github.com/composer/satis) extended with the ability to generate SATIS configuration according to CVS projects containing a `composer.json` file.
 
@@ -18,9 +18,9 @@ It also provides a way to mirror PHP dependencies to allow offline builds.
 ```bash
 git clone https://github.com/mborne/satis-gitlab
 cd satis-gitlab
-# PHP 7.x
+# PHP 8.1
 composer install
-# PHP 5.6 (downgrading versions refered in composer.lock is required)
+# PHP 7.4 (downgrading versions refered in composer.lock is required)
 composer update
 ```
 
