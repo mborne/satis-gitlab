@@ -34,6 +34,15 @@ class ConfigBuilder {
     }
 
     /**
+     * Set name
+     */
+    public function setName($name){
+        $this->config['name'] = $name;
+
+        return $this;
+    }
+
+    /**
      * Set homepage
      * @return $self
      */
