@@ -123,7 +123,6 @@ Some command line options provide a basic customization options. You may also us
 
 [default-template.json](src/MBO/SatisGitlab/Resources/default-template.json)
 
-
 ## Testing
 
 ```bash
