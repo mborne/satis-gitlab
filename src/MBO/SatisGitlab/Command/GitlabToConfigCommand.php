@@ -295,7 +295,7 @@ class GitlabToConfigCommand extends Command {
         $result = json_encode($satis, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         file_put_contents($outputFile, $result);
 
-        return static::SUCCESS;
+        return Command::SUCCESS;
     }
 
 

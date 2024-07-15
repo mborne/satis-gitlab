@@ -23,8 +23,8 @@
         "bin/satis-gitlab"
     ],
     "require": {
-        "mborne/remote-git": "~0.1",
-        "symfony/console": "^5.4",
+        "mborne/remote-git": "^0.7",
+        "symfony/console": "^5.4|^6.0|^7.0",
         "composer/satis": "dev-main"
     },
     "require-dev": {
