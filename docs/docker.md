@@ -9,6 +9,8 @@ Provide a docker image for satis-gitlab to :
 
 ## Build image
 
+> Alternative : use [ghcr.io/mborne/satis-gitlab:master](https://github.com/mborne/satis-gitlab/pkgs/container/satis-gitlab) instead of satis-gitlab bellow.
+
 ```bash
 docker build -t satis-gitlab .
 ```

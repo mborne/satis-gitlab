@@ -92,7 +92,7 @@ bin/satis-gitlab gitlab-to-config https://github.com  $SATIS_GITHUB_TOKEN --orgs
 bin/satis-gitlab build --skip-errors satis.json web
 ```
 
-(Note that GITHUB_TOKEN is required to avoid rate request limitation)
+(Note that SATIS_GITHUB_TOKEN is required to avoid rate request limitation)
 
 
 ### Mirror dependencies
@@ -122,6 +122,10 @@ You may disable this option using `--no-token` option and use the following comp
 Some command line options provide a basic customization options. You may also use `--template my-satis-template.json` to replace the default template :
 
 [default-template.json](src/MBO/SatisGitlab/Resources/default-template.json)
+
+## Usage with docker
+
+See [docs/docker.md](docs/docker.md).
 
 ## Testing
 
