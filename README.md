@@ -8,7 +8,7 @@ It also provides a way to mirror PHP dependencies to allow offline builds.
 
 ## Requirements
 
-* [PHP >=8.1](https://www.php.net/supported-versions.php)
+* [PHP >=8.2](https://www.php.net/supported-versions.php)
 * GitLab API v4 / GitHub API / Gogs API / Gitea API
 
 ## Usage
