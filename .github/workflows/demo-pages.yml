@@ -31,9 +31,6 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Configure authentication for composer
-      run: git config --global github.accesstoken $GITHUB_TOKEN
-
     - name: Build demo
       run: bash .ci/build-demo.sh
       env:
