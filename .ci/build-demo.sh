@@ -11,6 +11,10 @@ fi
 
 cd "$PROJECT_DIR"
 
+if [ "$GITHUB_ACTIONS" = "true" ]; then
+    composer config -g github-oauth.github.com $SATIS_GITHUB_TOKEN
+fi
+
 # generate the satis config file (satis.json) 
 bin/satis-gitlab gitlab-to-config \
     --template ".ci/template.json" \
@@ -20,4 +24,4 @@ bin/satis-gitlab gitlab-to-config \
     --output satis.json
 
 # build public directory
-bin/satis-gitlab build --skip-errors satis.json public
+bin/satis-gitlab build --no-interaction --skip-errors satis.json public
