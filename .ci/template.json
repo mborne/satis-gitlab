@@ -1,0 +1,13 @@
+{
+    "name": "mborne/demo-satis-gitlab",
+    "homepage": "https://mborne.github.io/satis-gitlab/",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packagist.org"
+        }
+    ],
+    "require": [],
+    "require-dependencies": false,
+    "require-dev-dependencies": false
+}

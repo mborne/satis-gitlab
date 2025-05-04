@@ -3,6 +3,7 @@
 /satis.json
 /web/
 /output/
+/public/
 
 /composer.phar
 /.phpunit.result.cache
