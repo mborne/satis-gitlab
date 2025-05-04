@@ -139,6 +139,13 @@ make test
 Note that an HTML coverage report is generated to `output/coverage/index.html`
 
 
+## Demo
+
+https://mborne.github.io/satis-gitlab/ is built using github actions. See :
+
+* [.github/workflows/demo-pages.yml](.github/workflows/demo-pages.yml)
+* [.ci/build-demo.sh](.ci/build-demo.sh)
+
 ## License
 
 [MIT](LICENSE).

@@ -11,6 +11,7 @@ fi
 
 cd "$PROJECT_DIR"
 
+# configure github authentication for composer
 if [ "$GITHUB_ACTIONS" = "true" ]; then
     composer config -g github-oauth.github.com $SATIS_GITHUB_TOKEN
 fi
